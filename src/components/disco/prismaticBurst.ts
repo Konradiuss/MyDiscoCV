@@ -46,6 +46,21 @@ export function getBurstQuadTransform(
   }
 }
 
+/**
+ * The march is the most expensive thing in the room, and once the ball has
+ * scrolled far enough away the quad cannot cover a single pixel. The test is on
+ * the quad's own bounds, so it only ever hides a halo the rasterizer would have
+ * thrown away whole: nothing can pop.
+ */
+export function isBurstQuadOnScreen(quad: BurstQuadTransform) {
+  return (
+    quad.centerX - quad.halfWidth <= 1 &&
+    quad.centerX + quad.halfWidth >= -1 &&
+    quad.centerY - quad.halfHeight <= 1 &&
+    quad.centerY + quad.halfHeight >= -1
+  )
+}
+
 export const PRISMATIC_BURST_VERTEX_SHADER = /* glsl */ `
 uniform vec2 uQuadCenter;
 uniform vec2 uQuadHalfSize;
@@ -69,7 +84,6 @@ uniform float uAngle;
 uniform float uIntensity;
 uniform float uNoiseAmount;
 uniform float uDistort;
-uniform float uRayCount;
 uniform vec3 uColorInner;
 uniform vec3 uColorMiddle;
 uniform vec3 uColorOuter;
@@ -125,13 +139,11 @@ float bendAngle( in vec3 q, in float t ) {
  * Measured in the band between the two radii rather than in pixels, so the
  * shape of the halo survives every viewport and every apparent ball size.
  */
-float haloFalloff( in float distancePx, in vec2 frag ) {
+float haloShape( in float distancePx ) {
   float band = ( distancePx - uHoleRadius ) / max( uReach - uHoleRadius, 1.0 );
   // A long tail rather than a ring: the light has to run out of the frame, and
   // any sharper pair of curves draws a visible disc edge around the ball.
-  float shaped = smootherstep01( band / 0.25 ) * ( 1.0 - smootherstep01( band ) );
-  float grain = ( layeredNoise( frag * 0.15 ) - 0.5 ) * 0.0015 * shaped;
-  return clamp( shaped + grain, 0.0, 1.0 );
+  return smootherstep01( band / 0.25 ) * ( 1.0 - smootherstep01( band ) );
 }
 
 void main() {
@@ -141,7 +153,13 @@ void main() {
   vec2 toCenter = frag - uCenter;
   float distancePx = length( toCenter );
 
-  float falloff = haloFalloff( distancePx, frag );
+  // Leave before the noise, not after it: the grain below is scaled by the shape,
+  // so on a pixel the halo does not reach it could never have changed anything.
+  float shaped = haloShape( distancePx );
+  if ( shaped <= 0.0 ) discard;
+
+  float grain = ( layeredNoise( frag * 0.15 ) - 0.5 ) * 0.0015 * shaped;
+  float falloff = clamp( shaped + grain, 0.0, 1.0 );
   if ( falloff <= 0.0 ) discard;
 
   float t = uTime;
@@ -156,6 +174,12 @@ void main() {
     vec3 P = marchT * dir;
     P.z -= 2.0;
     float rad = length( P );
+
+    // Every step is weighted by smoothstep( 5.0, 0.0, rad ), which is flat zero
+    // from rad 5 outwards, and rad only ever grows once the march is past the
+    // near point. Whatever is left of the loop out here adds nothing.
+    if ( rad >= 5.0 ) break;
+
     vec3 Pl = P * ( 10.0 / max( rad, 1e-6 ) );
 
     // The one rotation in the effect, and it is the ball's own.
@@ -175,11 +199,6 @@ void main() {
       sin( Pb.x + cos( Pb.y ) * cos( Pb.z ) ) *
       sin( Pb.z + sin( Pb.y ) * cos( Pb.x + t ) )
     );
-
-    if ( uRayCount > 0.0 ) {
-      float spoke = 0.5 + 0.5 * cos( uRayCount * atan( Pb.y, Pb.x ) );
-      rayPattern *= smoothstep( 0.15, 0.95, pow( spoke, 3.0 ) );
-    }
 
     float saw = fract( marchT * 0.25 );
     vec3 spectral = 2.0 * sampleGradient( saw * saw * ( 3.0 - 2.0 * saw ) );
@@ -201,6 +220,21 @@ void main() {
     clamp( max( max( gl_FragColor.r, gl_FragColor.g ), gl_FragColor.b ), 0.0, 1.0 );
 }
 `
+
+/**
+ * The halo is a disc of radius `uReach`; everything outside it is discarded. A
+ * square would hand the rasterizer the four corners as well, which is a fifth of
+ * the fragments shaded for nothing.
+ *
+ * The polygon is circumscribed, so it covers the disc whole. Note that the
+ * vertex shader never looks at the model matrix, so the size has to be baked in
+ * here — scaling the mesh would do nothing at all.
+ */
+export const BURST_QUAD_SEGMENTS = 16
+
+export function createPrismaticBurstGeometry() {
+  return new THREE.CircleGeometry(1 / Math.cos(Math.PI / BURST_QUAD_SEGMENTS), BURST_QUAD_SEGMENTS)
+}
 
 export interface PrismaticBurstMaterialOptions {
   readonly steps: number
@@ -225,7 +259,6 @@ export function createPrismaticBurstMaterial(options: PrismaticBurstMaterialOpti
       uIntensity: { value: 1 },
       uNoiseAmount: { value: 0.8 },
       uDistort: { value: 0 },
-      uRayCount: { value: 0 },
       uColorInner: { value: new THREE.Color(PRISMATIC_BURST_COLORS.inner) },
       uColorMiddle: { value: new THREE.Color(PRISMATIC_BURST_COLORS.middle) },
       uColorOuter: { value: new THREE.Color(PRISMATIC_BURST_COLORS.outer) },

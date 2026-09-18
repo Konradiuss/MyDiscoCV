@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { resumeByLocale } from '../data/resume'
+import { resolveShot } from '../data/resumeAssets'
 import { getMonthIndex } from '../components/resume/period'
 import { contactKinds, locales, type Locale, type ResumeContent } from '../types/resume'
 
@@ -247,6 +248,22 @@ describe('the data is well formed', () => {
       expect(shots.length).toBeGreaterThan(0)
       shots.forEach((shot) => {
         expect(shot.alt.trim().length, `${locale} ${shot.file}`).toBeGreaterThan(0)
+      })
+    })
+  })
+
+  it('names a screenshot file that is really in the build', () => {
+    all.forEach(([locale, resume]) => {
+      const shots = [
+        ...resume.experience.flatMap((job) => job.projects.flatMap((project) => project.shots)),
+        ...resume.projects.flatMap((project) => project.shots),
+      ]
+
+      expect(shots.length).toBeGreaterThan(0)
+      shots.forEach((shot) => {
+        // resolveShot throws with the list of what is there, which is the message
+        // worth having when a screenshot is renamed and a caption is not.
+        expect(() => resolveShot(shot.file), `${locale} ${shot.file}`).not.toThrow()
       })
     })
   })

@@ -53,7 +53,8 @@ src/
 │   ├── audio/           # music tracks
 │   ├── covers/          # album artwork for the record sleeves
 │   ├── avatars/         # profile pictures for the contact tiles
-│   ├── shots/           # project screenshots
+│   ├── shots-source/    # project screenshots as they came out of the capture
+│   ├── shots/           # the WebP the site ships, built from shots-source/
 │   ├── documents/       # generated PDF resumes
 │   └── main.css         # site styles
 ├── components/
@@ -72,9 +73,10 @@ scripts/
 ### Changing the content
 
 - **Resume text**: edit `src/data/resume.ts`. Each language is written out in full. The unit tests check that dates, stacks, links and screenshots match across the three languages.
-- **Screenshots**: put the image in `src/assets/shots/` and reference its file name in `resume.ts`.
+- **Screenshots**: put the original in `src/assets/shots-source/`, run `npm run shots:optimize`, and reference the generated `.webp` name in `resume.ts`. The originals are kept so the settings can change without ever recompressing an already compressed picture; only `src/assets/shots/` is bundled.
 - **Music**: put the track in `src/assets/audio/` and its cover in `src/assets/covers/`, then add an entry to `src/data/playlist.ts`.
 - **PDF resumes**: run `npm run resume:pdf` after changing the content.
+- **Link previews**: `index.html` carries the English tags between the `share-meta` markers, and the build writes a localised copy of them into `/ua`, `/ru` and `/en` — see `scripts/shareMeta.ts`. The description follows `profile.summary` on its own, but the picture has the name, title, location and availability baked in, so run `npm run share:image` after changing any of those four.
 
 ## Getting started
 
@@ -97,6 +99,9 @@ Then open http://localhost:5173.
 | `npm run test:unit` | Run unit tests with Vitest |
 | `npm run test:e2e` | Run end-to-end tests with Playwright (run `npx playwright install` first) |
 | `npm run resume:pdf` | Generate the PDF resumes (`-- en` for one language, `-- --preview` to also save PNG previews) |
+| `npm run shots:optimize` | Build the shipped screenshots from `src/assets/shots-source/` (`-- --force` to rebuild everything, `-- --width`/`-- --quality` to change the settings) |
+| `npm run share:image` | Photograph the room for the link previews (`-- en` for one language, `-- --skip-build` to reuse `dist/`, `-- --motion` to let the halo animate first) |
+| `npm run icons:build` | Build the home-screen icons and `site.webmanifest` from `compact-disc.svg` |
 | `npm run lint` | Run Oxlint and ESLint |
 | `npm run format` | Format the code with Prettier |
 

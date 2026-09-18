@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import * as THREE from 'three'
 import type { AudioLevelReading } from '@/audio/audioLevels'
 import { chaseLevel, getLitRows, getPeakRow } from '@/audio/spectrum'
@@ -22,6 +22,15 @@ import {
   REFLECTION_SPOT_SHAPE_ATTRIBUTE,
   createReflectionSpotMaterial,
 } from './disco/reflectionSpotMaterial'
+import { shouldAnimateScene } from './disco/sceneLoop'
+import {
+  createTrailingCall,
+  getSceneViewport,
+  needsCameraUpdate,
+  needsRendererResize,
+  type SceneViewport,
+  type ViewportReading,
+} from './disco/viewportSync'
 import {
   buildRoomGridPositions,
   getRoomGridCellSize,
@@ -36,9 +45,11 @@ import {
 } from './disco/ballProjection'
 import {
   PRISMATIC_BURST_PROFILES,
+  createPrismaticBurstGeometry,
   createPrismaticBurstMaterial,
   getBurstQuadTransform,
   getBurstReach,
+  isBurstQuadOnScreen,
 } from './disco/prismaticBurst'
 import {
   RECORD_LABEL_DIAMETER,
@@ -99,6 +110,11 @@ const props = defineProps<{
   labels?: UiLabels
   /** A getter rather than reactive state: it changes every frame. */
   readLevels?: () => AudioLevelReading
+  /**
+   * Something opaque is over the room. The scene stops: the frames would not be
+   * seen, and a blurred backdrop over a live canvas is redrawn on every one.
+   */
+  covered?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -163,6 +179,8 @@ let reflectionTravelTurns = 0
 let animationFrame = 0
 let lastFrame = 0
 let resizeObserver: ResizeObserver | null = null
+let appliedViewport: SceneViewport | null = null
+let resizeFrame = 0
 let motionQuery: MediaQueryList | null = null
 let reducedMotion = false
 let isDragging = false
@@ -910,7 +928,7 @@ function createPrismaticBurst() {
     window.innerWidth < 720 ? PRISMATIC_BURST_PROFILES.mobile : PRISMATIC_BURST_PROFILES.desktop
 
   prismaticBurst = new THREE.Mesh(
-    new THREE.PlaneGeometry(2, 2),
+    createPrismaticBurstGeometry(),
     createPrismaticBurstMaterial({ steps: profile.steps }),
   )
   prismaticBurst.frustumCulled = false
@@ -939,7 +957,7 @@ function updatePrismaticBurst() {
   const reach = ball && view ? getBurstReach(ball, view, burstSpread) : 0
   const quad = ball && view ? getBurstQuadTransform(ball, view, reach) : null
 
-  if (!ball || !view || !quad) {
+  if (!ball || !view || !quad || !isBurstQuadOnScreen(quad)) {
     prismaticBurst.visible = false
     return
   }
@@ -2513,31 +2531,82 @@ function createDiscoBall() {
   ballGroup.add(mirrorCore, mirrorShell)
 }
 
-function resize() {
-  const width = window.innerWidth
-  const height = window.innerHeight
+/**
+ * The canvas box, not the window.
+ *
+ * The stage is `100svh`, which on a phone is the height with the address bar
+ * showing — while `innerHeight` grows once it retracts. Sizing the drawing
+ * buffer from the window therefore paints rows the phone never shows and
+ * squashes the ones it does. It is also the steadier number: `svh` does not move
+ * with the address bar, so the guards below stop firing during a scroll.
+ */
+function readViewport(): ViewportReading {
+  const element = renderer?.domElement ?? canvas.value
 
-  if (scene && reflectionViewportIsMobile !== width < 720) {
-    rebuildReflectedSpotsForViewport()
+  return {
+    width: element?.clientWidth || window.innerWidth,
+    height: element?.clientHeight || window.innerHeight,
+    devicePixelRatio: window.devicePixelRatio,
   }
-  rebuildPrismaticBurstForViewport()
+}
 
-  if (renderer && camera) {
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 720 ? 1.5 : 1.8))
-    renderer.setSize(width, height, false)
-    camera.fov = width < 720 ? 31 : 35
-    camera.aspect = width / height
+/**
+ * The part that has to keep up with the window: the canvas size, the framing and
+ * the box the hit areas are placed against. Guarded, because three reallocates
+ * the drawing buffer on every setSize, including the ones that change nothing.
+ */
+function applyViewport() {
+  const next = getSceneViewport(readViewport())
+
+  if (renderer && needsRendererResize(appliedViewport, next)) {
+    renderer.setPixelRatio(next.pixelRatio)
+    renderer.setSize(next.width, next.height, false)
+  }
+
+  if (camera && needsCameraUpdate(appliedViewport, next)) {
+    camera.fov = next.fov
+    camera.aspect = next.width / Math.max(1, next.height)
     camera.updateProjectionMatrix()
   }
 
-  rebuildFloorForViewport()
+  appliedViewport = next
 
   if (renderer) canvasRect = renderer.domElement.getBoundingClientRect()
 
-  updateRoomGrid()
   updateSceneFromScroll()
+}
+
+/**
+ * The part that tears down and rebuilds geometry. Held back until the window has
+ * stopped moving: on a phone the address bar slides through dozens of sizes on
+ * the way, and every one of them used to rebuild the floor and the grid.
+ */
+function rebuildForViewport() {
+  rebuildReflectedSpotsForViewport()
+  rebuildPrismaticBurstForViewport()
+  rebuildFloorForViewport()
+  updateRoomGrid()
   updatePrismaticBurst()
   if (reducedMotion) renderOnce()
+}
+
+/* Long enough to sit out a phone's address-bar slide, short enough to feel attached. */
+const deferredRebuild = createTrailingCall(rebuildForViewport, 200)
+
+function resize() {
+  applyViewport()
+  rebuildForViewport()
+}
+
+function scheduleResize() {
+  if (!resizeFrame) {
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = 0
+      applyViewport()
+    })
+  }
+
+  deferredRebuild.schedule()
 }
 
 function updateSceneFromScroll() {
@@ -2692,7 +2761,11 @@ function frame(now: number) {
     updateDeckHitAreas()
   }
 
-  animationFrame = requestAnimationFrame(frame)
+  // Asked again rather than assumed: `frame` clears the handle on the way in, so
+  // a stop() raised while this frame was running would otherwise be undone here.
+  if (shouldAnimateScene({ hidden: document.hidden, covered: props.covered ?? false })) {
+    animationFrame = requestAnimationFrame(frame)
+  }
 }
 
 function start() {
@@ -2707,18 +2780,24 @@ function stop() {
   animationFrame = 0
 }
 
+function syncLoop() {
+  if (shouldAnimateScene({ hidden: document.hidden, covered: props.covered ?? false })) start()
+  else stop()
+}
+
 function handleMotionPreference() {
   reducedMotion = motionQuery?.matches ?? false
   if (reducedMotion && ballGroup) ballGroup.rotation.x = 0
   updateSceneFromScroll()
   renderOnce()
-  if (!document.hidden) start()
+  syncLoop()
 }
 
 function handleVisibilityChange() {
-  if (document.hidden) stop()
-  else start()
+  syncLoop()
 }
+
+watch(() => props.covered, syncLoop)
 
 function disposeObject(object: THREE.Object3D) {
   if (
@@ -2745,7 +2824,7 @@ onMounted(() => {
   reducedMotion = motionQuery.matches
   motionQuery.addEventListener('change', handleMotionPreference)
   window.addEventListener('scroll', handleScroll, { passive: true })
-  window.addEventListener('resize', resize)
+  window.addEventListener('resize', scheduleResize)
   document.addEventListener('visibilitychange', handleVisibilityChange)
 
   try {
@@ -2799,10 +2878,9 @@ onMounted(() => {
   // loading screen starts its exit.
   requestAnimationFrame(() => requestAnimationFrame(() => emit('ready', measureBallOnScreen())))
 
-  resizeObserver = new ResizeObserver(() => {
-    resize()
-    renderOnce()
-  })
+  // Watches the content box, so it also catches the page growing under the room
+  // — images decoding, a locale swap — which a window resize never reports.
+  resizeObserver = new ResizeObserver(scheduleResize)
   resizeObserver.observe(document.documentElement)
 
   start()
@@ -2810,10 +2888,13 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stop()
+  deferredRebuild.cancel()
+  if (resizeFrame) cancelAnimationFrame(resizeFrame)
+  resizeFrame = 0
   resizeObserver?.disconnect()
   motionQuery?.removeEventListener('change', handleMotionPreference)
   window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('resize', resize)
+  window.removeEventListener('resize', scheduleResize)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 
   disposeReflectedSpotResources()
