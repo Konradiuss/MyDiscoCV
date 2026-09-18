@@ -70,6 +70,8 @@ export interface UiLabels {
   closeScreenshot: string
   previousScreenshot: string
   nextScreenshot: string
+  loadingScreenshot: string
+  screenshotFailed: string
   education: string
   languages: string
   skillLevels: string

@@ -2,19 +2,74 @@
 <html lang="en-GB">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!--
+      Everything a link preview is built from, kept at the top of the head: some
+      scrapers only read the first few kilobytes, and the loading-screen styles
+      below are four of them.
+
+      The tags here are the English ones, so `npm run dev` and any unprocessed
+      copy of this file are correct. At build time staticHostFallback() in
+      vite.config.ts replaces the whole block, and the lang attribute above, once
+      per locale — see src/share/shareMeta.ts.
+
+      URLs in here must be absolute. A root-relative one would reach the scraper
+      unchanged and 404 under the /MyDiscoCV/ base path.
+    -->
+    <!-- share-meta:start -->
+    <title>Babii Oleksandr | Full-stack Web Developer</title>
     <meta
       name="description"
-      content="Babii Oleksandr — Full-stack Web Developer (Vue, Nuxt, TypeScript, Node.js). Interactive resume and portfolio in English, Ukrainian and Russian."
+      content="Full-stack web developer whose core stack is Vue, Nuxt, TypeScript, and Node.js."
     />
+    <link rel="canonical" href="https://konradiuss.github.io/MyDiscoCV/en" />
+    <link rel="alternate" hreflang="uk" href="https://konradiuss.github.io/MyDiscoCV/ua" />
+    <link rel="alternate" hreflang="ru" href="https://konradiuss.github.io/MyDiscoCV/ru" />
+    <link rel="alternate" hreflang="en" href="https://konradiuss.github.io/MyDiscoCV/en" />
+    <link rel="alternate" hreflang="x-default" href="https://konradiuss.github.io/MyDiscoCV/en" />
     <meta property="og:type" content="profile" />
+    <meta property="og:site_name" content="DiscoCV" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:locale:alternate" content="uk_UA" />
+    <meta property="og:locale:alternate" content="ru_RU" />
+    <meta property="og:url" content="https://konradiuss.github.io/MyDiscoCV/en" />
     <meta property="og:title" content="Babii Oleksandr | Full-stack Web Developer" />
     <meta
       property="og:description"
-      content="An interactive resume and portfolio set in a 3D disco room: experience, projects, skills and a PDF resume."
+      content="Full-stack web developer whose core stack is Vue, Nuxt, TypeScript, and Node.js."
     />
-    <title>Babii Oleksandr | Full-stack Web Developer</title>
+    <meta property="og:image" content="https://konradiuss.github.io/MyDiscoCV/og-en.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Babii Oleksandr — Full-stack Web Developer, Odesa, Ukraine"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Babii Oleksandr | Full-stack Web Developer" />
+    <meta
+      name="twitter:description"
+      content="Full-stack web developer whose core stack is Vue, Nuxt, TypeScript, and Node.js."
+    />
+    <meta name="twitter:image" content="https://konradiuss.github.io/MyDiscoCV/og-en.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="Babii Oleksandr — Full-stack Web Developer, Odesa, Ukraine"
+    />
+    <!-- share-meta:end -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07070d" />
+    <!--
+      Exactly one rel="icon". src/favicon/animatedFavicon.ts drives the spinning
+      vinyl by swapping the href of the first `link[rel~="icon"]` it finds, so a
+      second one would leave a stale icon the browser might prefer. apple-touch-icon
+      and manifest are different rel tokens and do not match that selector.
+    -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <!-- Styled inline: the overlay has to paint before any bundle or main.css loads. -->
     <style>
       .loading-screen {

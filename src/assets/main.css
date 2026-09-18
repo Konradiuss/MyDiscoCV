@@ -1227,12 +1227,57 @@ h3 {
   min-height: 0;
 }
 
+/* Holds the spinner over whichever picture is still on screen. */
+.screenshot-viewer__frame {
+  position: relative;
+  display: grid;
+  min-height: 120px;
+  place-items: center;
+}
+
 .screenshot-viewer__figure img {
   width: 100%;
   max-height: min(68vh, 720px);
   border: 1px solid var(--line);
   border-radius: 8px;
   object-fit: contain;
+}
+
+/* The picture that is on its way out dims, so the spinner has something to sit on. */
+.screenshot-viewer__frame--waiting img {
+  opacity: 0.45;
+  transition: opacity 140ms ease;
+}
+
+.screenshot-viewer__loading {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(3, 3, 7, 0.55);
+  color: #eaf6ff;
+}
+
+.screenshot-viewer__spin {
+  width: 38px;
+  height: 38px;
+  animation: screenshot-viewer-spin 1.9s linear infinite;
+}
+
+@keyframes screenshot-viewer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.screenshot-viewer__missing {
+  margin: 0;
+  padding: 40px 16px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
 }
 
 .screenshot-viewer__figure figcaption {
@@ -1922,6 +1967,15 @@ h3 {
 @media (prefers-reduced-motion: reduce) {
   .now-playing__disc {
     animation: none;
+  }
+
+  /* The disc stops turning; it still says the picture is on its way. */
+  .screenshot-viewer__spin {
+    animation: none;
+  }
+
+  .screenshot-viewer__frame--waiting img {
+    transition: none;
   }
 
   .experience-timeline::after {

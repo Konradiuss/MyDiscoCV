@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch, watchEffect } from 'vue'
 import { resolveShot } from '@/data/resumeAssets'
 import type { UiLabels } from '@/types/resume'
+import ContactMark from './ContactMark.vue'
 import { useScreenshotViewer } from './resume/screenshotViewer'
+import { createShotLoader } from './resume/shotLoader'
 
 const props = defineProps<{
   labels: UiLabels
@@ -12,9 +14,35 @@ const viewer = useScreenshotViewer()
 const dialog = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLElement | null>(null)
 
+const loader = createShotLoader({
+  createImage: () => (typeof Image === 'undefined' ? null : new Image()),
+})
+
 const source = computed(() => (viewer.current.value ? resolveShot(viewer.current.value.file) : ''))
 const many = computed(() => viewer.shots.value.length > 1)
 const counter = computed(() => `${viewer.index.value + 1} / ${viewer.shots.value.length}`)
+
+/** The picture on screen lags the counter by however long the next one takes. */
+const shownAlt = ref('')
+
+watchEffect(() => {
+  if (source.value === '') return
+
+  loader.show(source.value)
+  // Both neighbours, because the arrows go both ways and the gallery wraps.
+  const shots = viewer.shots.value
+  if (shots.length > 1) {
+    const at = viewer.index.value
+    const count = shots.length
+    loader.prefetch(resolveShot(shots[(at + 1) % count]!.file))
+    loader.prefetch(resolveShot(shots[(at - 1 + count) % count]!.file))
+  }
+})
+
+watch(loader.shown, (ready) => {
+  const match = viewer.shots.value.find((shot) => resolveShot(shot.file) === ready)
+  if (match) shownAlt.value = match.alt
+})
 
 function handleKey(event: KeyboardEvent) {
   if (event.key === 'Escape') {
@@ -72,6 +100,8 @@ watch(
   async (open) => {
     if (!open) {
       unbind()
+      loader.reset()
+      shownAlt.value = ''
       return
     }
 
@@ -81,7 +111,10 @@ watch(
   },
 )
 
-onBeforeUnmount(unbind)
+onBeforeUnmount(() => {
+  unbind()
+  loader.destroy()
+})
 </script>
 
 <template>
@@ -126,7 +159,32 @@ onBeforeUnmount(unbind)
         </div>
 
         <figure class="screenshot-viewer__figure">
-          <img :src="source" :alt="viewer.current.value?.alt ?? ''" />
+          <div
+            class="screenshot-viewer__frame"
+            :class="{ 'screenshot-viewer__frame--waiting': loader.pending.value }"
+          >
+            <img
+              v-if="loader.shown.value"
+              :src="loader.shown.value"
+              :alt="shownAlt"
+              decoding="async"
+              fetchpriority="high"
+            />
+
+            <p v-else-if="loader.failed.value" class="screenshot-viewer__missing">
+              {{ props.labels.screenshotFailed }}
+            </p>
+
+            <span
+              v-if="loader.pending.value"
+              class="screenshot-viewer__loading"
+              role="status"
+              :aria-label="props.labels.loadingScreenshot"
+            >
+              <ContactMark name="compact-disc" class="screenshot-viewer__spin" />
+            </span>
+          </div>
+
           <figcaption>{{ viewer.current.value?.alt }}</figcaption>
         </figure>
 

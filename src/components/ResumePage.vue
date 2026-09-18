@@ -11,7 +11,9 @@ import {
   whenLoadingScreenGone,
 } from '@/loading/loadingScreen'
 import type { Locale } from '@/types/resume'
+import type { BallScreenGeometry } from './disco/ballProjection'
 import { LANGUAGE_TAGS } from './resume/period'
+import { useScreenshotViewer } from './resume/screenshotViewer'
 import BackgroundSection from './BackgroundSection.vue'
 import ClickSpark from './ClickSpark.vue'
 import ExperienceSection from './ExperienceSection.vue'
@@ -40,6 +42,17 @@ function handleSceneProgress(value: number) {
   reportLoadingProgress(sceneChunkLoaded + value * (sceneBuildEnd - sceneChunkLoaded))
 }
 
+/*
+ * The loading screen is not a readiness signal — it leaves on a timeout whether
+ * or not the room was ever built. This attribute says the room is actually
+ * drawn, which is what scripts/build-share-image.ts and the end-to-end tests
+ * need to wait on.
+ */
+function handleSceneReady(ball: BallScreenGeometry | null) {
+  document.documentElement.dataset.sceneReady = 'true'
+  signalLoadingReady(ball)
+}
+
 const activeLocale = computed<Locale>(() => {
   const value = Array.isArray(route.params.locale) ? route.params.locale[0] : route.params.locale
   return isLocale(value) ? value : defaultLocale
@@ -57,6 +70,9 @@ onMounted(() => {
 })
 
 const player = useMusicPlayer()
+
+/* The screenshot viewer covers the whole room, and blurs what it covers. */
+const viewer = useScreenshotViewer()
 </script>
 
 <template>
@@ -69,8 +85,9 @@ const player = useMusicPlayer()
       :volume="player.volume.value"
       :labels="resume.ui"
       :read-levels="readAudioLevels"
+      :covered="viewer.isOpen.value"
       @progress="handleSceneProgress"
-      @ready="signalLoadingReady"
+      @ready="handleSceneReady"
       @select-sleeve="player.playTrack"
       @toggle-music="player.toggle"
       @restart-music="player.restart"

@@ -180,6 +180,8 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
       closeScreenshot: 'Закрити знімок',
       previousScreenshot: 'Попередній знімок',
       nextScreenshot: 'Наступний знімок',
+      loadingScreenshot: 'Знімок завантажується',
+      screenshotFailed: 'Не вдалося завантажити знімок',
       education: 'Освіта',
       languages: 'Мови',
       skillLevels: 'Рівні володіння',
@@ -257,23 +259,23 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'zoda-memorial-01.jpg',
+                file: 'zoda-memorial-01.webp',
                 alt: 'Головна сторінка онлайн-меморіалу «Меморіал Честі» з описом Книги пам’яті та швидким переходом до пошуку.',
               },
               {
-                file: 'zoda-memorial-02.jpg',
+                file: 'zoda-memorial-02.webp',
                 alt: 'Сторінка профілю Захисника на демонстраційних даних: біографія, нагороди, фотогалерея та QR-код профілю.',
               },
               {
-                file: 'zoda-memorial-03.jpg',
+                file: 'zoda-memorial-03.webp',
                 alt: 'Інтерактивна мапа місць поховання Запорізької області з кластерами міток і фільтром за районом.',
               },
               {
-                file: 'zoda-memorial-04.jpg',
+                file: 'zoda-memorial-04.webp',
                 alt: 'Каталог місць поховання за районами та громадами з картками Героїв вибраного місця на демонстраційних даних.',
               },
               {
-                file: 'zoda-memorial-05.jpg',
+                file: 'zoda-memorial-05.webp',
                 alt: 'Адміністративна панель Payload CMS з розділами меморіалу, довідників, змісту сайту та адміністрування.',
               },
             ],
@@ -297,19 +299,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'air-monitor-kyiv-01.png',
+                file: 'air-monitor-kyiv-01.webp',
                 alt: 'Сповіщення про безпосередню загрозу з локальною мапою Київської області, ураженими районами й громадами та діагностикою джерела.',
               },
               {
-                file: 'air-monitor-kyiv-02.png',
+                file: 'air-monitor-kyiv-02.webp',
                 alt: 'Сповіщення про загрозу для міста Києва з оглядовою мапою області та детальною мапою громад Бучанського району.',
               },
               {
-                file: 'air-monitor-kyiv-03.png',
+                file: 'air-monitor-kyiv-03.webp',
                 alt: 'Вітальне повідомлення Telegram-бота з описом джерел, політики зберігання даних і меню команд.',
               },
               {
-                file: 'air-monitor-kyiv-04.png',
+                file: 'air-monitor-kyiv-04.webp',
                 alt: 'Вибір районів Київської області та міста Києва для підписки на сповіщення.',
               },
             ],
@@ -367,19 +369,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'belnet-erp-01.jpg',
+                file: 'belnet-erp-01.webp',
                 alt: 'Модуль лідів ERP-системи: зведені показники за статусами та таблиця заявок із джерелом, кампанією, статусом і відповідальним менеджером.',
               },
               {
-                file: 'belnet-erp-02.jpg',
+                file: 'belnet-erp-02.webp',
                 alt: 'Модуль персоналу: таблиця працівників із посадою, групою доступу, статусом, двофакторною автентифікацією та останньою активністю.',
               },
               {
-                file: 'belnet-erp-03.jpg',
+                file: 'belnet-erp-03.webp',
                 alt: 'Екран входу до робочого простору ERP-системи через пошту й пароль або через Google.',
               },
               {
-                file: 'belnet-erp-04.jpg',
+                file: 'belnet-erp-04.webp',
                 alt: 'Таблиця лідів із системними полями та вкладками відкритих модулів у верхній панелі інтерфейсу.',
               },
             ],
@@ -392,15 +394,15 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Vue', 'JavaScript', 'Tailwind CSS', 'REST API'],
             shots: [
               {
-                file: 'belnet-telegram-mini-app-01.png',
+                file: 'belnet-telegram-mini-app-01.webp',
                 alt: 'Форма створення абонента в Telegram Mini App: дані клієнта, адреса підключення та вибір послуг.',
               },
               {
-                file: 'belnet-telegram-mini-app-02.png',
+                file: 'belnet-telegram-mini-app-02.webp',
                 alt: 'Мобільна версія форми створення абонента з перевіркою пароля та номера телефону.',
               },
               {
-                file: 'belnet-telegram-mini-app-03.png',
+                file: 'belnet-telegram-mini-app-03.webp',
                 alt: 'Мобільна версія форми: нотатка, необов’язкові дані роутера та кнопка створення користувача.',
               },
             ],
@@ -462,55 +464,55 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'rd-hub-platform-01.png',
+                file: 'rd-hub-platform-01.webp',
                 alt: 'Головна сторінка R&D Hub з описом платформи та добіркою актуальних фестів.',
               },
               {
-                file: 'rd-hub-platform-02.png',
+                file: 'rd-hub-platform-02.webp',
                 alt: 'Каталог новин із пошуком, фільтром за фестом і картками публікацій.',
               },
               {
-                file: 'rd-hub-platform-03.png',
+                file: 'rd-hub-platform-03.webp',
                 alt: 'Сторінка окремої новини про відкриття лабораторії інновацій.',
               },
               {
-                file: 'rd-hub-platform-04.png',
+                file: 'rd-hub-platform-04.webp',
                 alt: 'Каталог фестів із фільтрами за статусом, ключовими словами та датами проведення.',
               },
               {
-                file: 'rd-hub-platform-05.png',
+                file: 'rd-hub-platform-05.webp',
                 alt: 'Сторінка активного фесту з датами, місцем, кількістю учасників і кнопками реєстрації та створення команди.',
               },
               {
-                file: 'rd-hub-platform-06.png',
+                file: 'rd-hub-platform-06.webp',
                 alt: 'Діалог реєстрації на фест із вибором індивідуальної участі або вступу до команди за кодом.',
               },
               {
-                file: 'rd-hub-platform-07.png',
+                file: 'rd-hub-platform-07.webp',
                 alt: 'Блок переможців завершеного фесту з командами та коментарями журі.',
               },
               {
-                file: 'rd-hub-platform-08.png',
+                file: 'rd-hub-platform-08.webp',
                 alt: 'Статистика адміністративної панелі: користувачі, фести, реєстрації, команди та переможці.',
               },
               {
-                file: 'rd-hub-platform-09.png',
+                file: 'rd-hub-platform-09.webp',
                 alt: 'Керування фестами: таблиця з датами проведення, дедлайном реєстрації, статусом і діями.',
               },
               {
-                file: 'rd-hub-platform-10.png',
+                file: 'rd-hub-platform-10.webp',
                 alt: 'Керування учасниками фесту: командні учасники, позначки переможців, статуси заявок і дії.',
               },
               {
-                file: 'rd-hub-platform-11.png',
+                file: 'rd-hub-platform-11.webp',
                 alt: 'Керування користувачами: таблиця з контактами, університетом, спеціалізацією та роллю на демонстраційних даних.',
               },
               {
-                file: 'rd-hub-platform-12.png',
+                file: 'rd-hub-platform-12.webp',
                 alt: 'Керування новинами: таблиця публікацій з автором, прив’язкою до фесту та статусом публікації.',
               },
               {
-                file: 'rd-hub-platform-13.png',
+                file: 'rd-hub-platform-13.webp',
                 alt: 'Керування командами: таблиця команд із фестом, лідером, кількістю учасників і статусом.',
               },
             ],
@@ -533,27 +535,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'odesa-interactive-map-01.png',
+                file: 'odesa-interactive-map-01.webp',
                 alt: 'Інтерактивна мапа Одеси проєкту «Рух без бар’єрів» із тематичними мітками об’єктів.',
               },
               {
-                file: 'odesa-interactive-map-02.png',
+                file: 'odesa-interactive-map-02.webp',
                 alt: 'Вибрана мітка на мапі та бічна панель зі статтею про Будинок учених, фотографією та описом.',
               },
               {
-                file: 'odesa-interactive-map-03.png',
+                file: 'odesa-interactive-map-03.webp',
                 alt: 'Каталог статей із сортуванням, категоріями та відкритою панеллю перегляду матеріалу.',
               },
               {
-                file: 'odesa-interactive-map-04.png',
+                file: 'odesa-interactive-map-04.webp',
                 alt: 'Адміністративна панель: таблиця статей із датою створення та діями редагування й видалення.',
               },
               {
-                file: 'odesa-interactive-map-05.png',
+                file: 'odesa-interactive-map-05.webp',
                 alt: 'Редактор статті з назвою, категорією, кольором типу, візуальним редактором тексту та завантаженням зображення.',
               },
               {
-                file: 'odesa-interactive-map-06.png',
+                file: 'odesa-interactive-map-06.webp',
                 alt: 'Налаштування мітки статті: вибір точки на мапі, координати, іконка, кольори та підпис маркера.',
               },
             ],
@@ -566,11 +568,11 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Python', 'aiogram', 'PostgreSQL', 'asyncpg', 'SQLAlchemy', 'APScheduler'],
             shots: [
               {
-                file: 'attendance-bot-01.png',
+                file: 'attendance-bot-01.webp',
                 alt: 'Особистий кабінет тестового працівника в Telegram-боті: контакти, статус, нагадування та відмітка про прихід, з меню дій.',
               },
               {
-                file: 'attendance-bot-02.png',
+                file: 'attendance-bot-02.webp',
                 alt: 'Реєстрація працівника в боті з перевіркою формату ПІБ, телефону й дати народження та налаштуванням початку робочого дня.',
               },
             ],
@@ -583,11 +585,11 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Vue 3', 'Vuex', 'JavaScript', 'Node.js', 'Express.js'],
             shots: [
               {
-                file: 'password-generator-01.png',
+                file: 'password-generator-01.webp',
                 alt: 'Генератор паролів у режимі «слово + роздільник + префікс» зі списком варіантів в українській та англійській розкладці й таблицею транслітерації.',
               },
               {
-                file: 'password-generator-02.png',
+                file: 'password-generator-02.webp',
                 alt: 'Генерація складних паролів із розширеним префіксом із цифр, символів і літер двох алфавітів.',
               },
             ],
@@ -625,19 +627,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Moodle', 'Linux'],
             shots: [
               {
-                file: 'moodle-01.png',
+                file: 'moodle-01.webp',
                 alt: 'Головна сторінка університетської Moodle з пошуком курсів і каталогом освітньо-професійних програм за рівнями вищої освіти.',
               },
               {
-                file: 'moodle-02.png',
+                file: 'moodle-02.webp',
                 alt: 'Панель адміністрування Moodle з розділами аналітики, компетентностей, відзнак, H5P та ліцензій.',
               },
               {
-                file: 'moodle-03.png',
+                file: 'moodle-03.webp',
                 alt: 'Сторінка навчального курсу із силабусом, літературою та списком лекцій із позначками про виконання.',
               },
               {
-                file: 'moodle-04.png',
+                file: 'moodle-04.webp',
                 alt: 'Вікно додавання діяльності або ресурсу до курсу: тести, завдання, форуми, H5P, SCORM та інші елементи.',
               },
             ],
@@ -661,27 +663,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
         demoUrl: 'https://konradiuss.github.io/artillery-calculator-stable',
         shots: [
           {
-            file: 'happy-shells-01.png',
+            file: 'happy-shells-01.webp',
             alt: 'Інтерфейс режиму прямого наведення з введенням дистанції, азимута, типу артилерії та параметрів вітру.',
           },
           {
-            file: 'happy-shells-02.png',
+            file: 'happy-shells-02.webp',
             alt: 'Результат розрахунку прямого наведення з візуалізацією напрямку стрільби та положення цілі.',
           },
           {
-            file: 'happy-shells-03.png',
+            file: 'happy-shells-03.webp',
             alt: 'Історія виконаних розрахунків і довідник щодо впливу сили вітру на різні типи артилерії.',
           },
           {
-            file: 'happy-shells-04.png',
+            file: 'happy-shells-04.webp',
             alt: 'Режим тріангуляції для обчислення потрібних поправок за координатами цілі та точки влучання.',
           },
           {
-            file: 'happy-shells-05.png',
+            file: 'happy-shells-05.webp',
             alt: 'Режим групової стрільби з інтерактивним розміщенням кількох артилерійських гармат на координатній сітці.',
           },
           {
-            file: 'happy-shells-06.png',
+            file: 'happy-shells-06.webp',
             alt: 'Розраховані поправки для групи гармат разом з історією попередніх групових розрахунків.',
           },
         ],
@@ -699,27 +701,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
         stack: ['Vue 3', 'TypeScript', 'Three.js', 'Vite', 'Vue Router', 'Vitest', 'Playwright'],
         shots: [
           {
-            file: 'disco-cv-01.png',
+            file: 'disco-cv-01.webp',
             alt: 'Головний екран DiscoCV з інтерактивною 3D-диско-сценою, профілем розробника, музичним плеєром і перемикачем мов.',
           },
           {
-            file: 'disco-cv-02.png',
+            file: 'disco-cv-02.webp',
             alt: 'Хронологія досвіду роботи DiscoCV з посадами, компаніями, періодами та описами обов’язків.',
           },
           {
-            file: 'disco-cv-03.png',
+            file: 'disco-cv-03.webp',
             alt: 'Картки робочих проєктів у DiscoCV зі стеком технологій та галереями скріншотів.',
           },
           {
-            file: 'disco-cv-04.png',
+            file: 'disco-cv-04.webp',
             alt: 'Розділ пет-проєктів DiscoCV з описами, ключовими можливостями та технологічним стеком.',
           },
           {
-            file: 'disco-cv-05.png',
+            file: 'disco-cv-05.webp',
             alt: 'Матриця технічних навичок DiscoCV, згрупована за напрямами та рівнями володіння.',
           },
           {
-            file: 'disco-cv-06.png',
+            file: 'disco-cv-06.webp',
             alt: 'Розділ освіти й мов DiscoCV у нижній частині інтерактивного резюме.',
           },
         ],
@@ -807,6 +809,8 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
       closeScreenshot: 'Закрыть скриншот',
       previousScreenshot: 'Предыдущий скриншот',
       nextScreenshot: 'Следующий скриншот',
+      loadingScreenshot: 'Скриншот загружается',
+      screenshotFailed: 'Не удалось загрузить скриншот',
       education: 'Образование',
       languages: 'Языки',
       skillLevels: 'Уровни владения',
@@ -884,23 +888,23 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'zoda-memorial-01.jpg',
+                file: 'zoda-memorial-01.webp',
                 alt: 'Главная страница онлайн-мемориала «Меморіал Честі» с описанием Книги памяти и быстрым переходом к поиску.',
               },
               {
-                file: 'zoda-memorial-02.jpg',
+                file: 'zoda-memorial-02.webp',
                 alt: 'Страница профиля Защитника на демонстрационных данных: биография, награды, фотогалерея и QR-код профиля.',
               },
               {
-                file: 'zoda-memorial-03.jpg',
+                file: 'zoda-memorial-03.webp',
                 alt: 'Интерактивная карта мест захоронения Запорожской области с кластерами меток и фильтром по району.',
               },
               {
-                file: 'zoda-memorial-04.jpg',
+                file: 'zoda-memorial-04.webp',
                 alt: 'Каталог мест захоронения по районам и громадам с карточками Героев выбранного места на демонстрационных данных.',
               },
               {
-                file: 'zoda-memorial-05.jpg',
+                file: 'zoda-memorial-05.webp',
                 alt: 'Административная панель Payload CMS с разделами мемориала, справочников, содержимого сайта и администрирования.',
               },
             ],
@@ -924,19 +928,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'air-monitor-kyiv-01.png',
+                file: 'air-monitor-kyiv-01.webp',
                 alt: 'Уведомление о непосредственной угрозе с локальной картой Киевской области, затронутыми районами и громадами и диагностикой источника.',
               },
               {
-                file: 'air-monitor-kyiv-02.png',
+                file: 'air-monitor-kyiv-02.webp',
                 alt: 'Уведомление об угрозе для города Киева с обзорной картой области и детальной картой громад Бучанского района.',
               },
               {
-                file: 'air-monitor-kyiv-03.png',
+                file: 'air-monitor-kyiv-03.webp',
                 alt: 'Приветственное сообщение Telegram-бота с описанием источников, политики хранения данных и меню команд.',
               },
               {
-                file: 'air-monitor-kyiv-04.png',
+                file: 'air-monitor-kyiv-04.webp',
                 alt: 'Выбор районов Киевской области и города Киева для подписки на оповещения.',
               },
             ],
@@ -994,19 +998,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'belnet-erp-01.jpg',
+                file: 'belnet-erp-01.webp',
                 alt: 'Модуль лидов ERP-системы: сводные показатели по статусам и таблица заявок с источником, кампанией, статусом и ответственным менеджером.',
               },
               {
-                file: 'belnet-erp-02.jpg',
+                file: 'belnet-erp-02.webp',
                 alt: 'Модуль персонала: таблица сотрудников с должностью, группой доступа, статусом, двухфакторной аутентификацией и последней активностью.',
               },
               {
-                file: 'belnet-erp-03.jpg',
+                file: 'belnet-erp-03.webp',
                 alt: 'Экран входа в рабочее пространство ERP-системы по почте и паролю или через Google.',
               },
               {
-                file: 'belnet-erp-04.jpg',
+                file: 'belnet-erp-04.webp',
                 alt: 'Таблица лидов с системными полями и вкладками открытых модулей в верхней панели интерфейса.',
               },
             ],
@@ -1019,15 +1023,15 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Vue', 'JavaScript', 'Tailwind CSS', 'REST API'],
             shots: [
               {
-                file: 'belnet-telegram-mini-app-01.png',
+                file: 'belnet-telegram-mini-app-01.webp',
                 alt: 'Форма создания абонента в Telegram Mini App: данные клиента, адрес подключения и выбор услуг.',
               },
               {
-                file: 'belnet-telegram-mini-app-02.png',
+                file: 'belnet-telegram-mini-app-02.webp',
                 alt: 'Мобильная версия формы создания абонента с проверкой пароля и номера телефона.',
               },
               {
-                file: 'belnet-telegram-mini-app-03.png',
+                file: 'belnet-telegram-mini-app-03.webp',
                 alt: 'Мобильная версия формы: заметка, необязательные данные роутера и кнопка создания пользователя.',
               },
             ],
@@ -1089,55 +1093,55 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'rd-hub-platform-01.png',
+                file: 'rd-hub-platform-01.webp',
                 alt: 'Главная страница R&D Hub с описанием платформы и подборкой актуальных фестов.',
               },
               {
-                file: 'rd-hub-platform-02.png',
+                file: 'rd-hub-platform-02.webp',
                 alt: 'Каталог новостей с поиском, фильтром по фесту и карточками публикаций.',
               },
               {
-                file: 'rd-hub-platform-03.png',
+                file: 'rd-hub-platform-03.webp',
                 alt: 'Страница отдельной новости об открытии лаборатории инноваций.',
               },
               {
-                file: 'rd-hub-platform-04.png',
+                file: 'rd-hub-platform-04.webp',
                 alt: 'Каталог фестов с фильтрами по статусу, ключевым словам и датам проведения.',
               },
               {
-                file: 'rd-hub-platform-05.png',
+                file: 'rd-hub-platform-05.webp',
                 alt: 'Страница активного феста с датами, местом, числом участников и кнопками регистрации и создания команды.',
               },
               {
-                file: 'rd-hub-platform-06.png',
+                file: 'rd-hub-platform-06.webp',
                 alt: 'Диалог регистрации на фест с выбором индивидуального участия или вступления в команду по коду.',
               },
               {
-                file: 'rd-hub-platform-07.png',
+                file: 'rd-hub-platform-07.webp',
                 alt: 'Блок победителей завершённого феста с командами и комментариями жюри.',
               },
               {
-                file: 'rd-hub-platform-08.png',
+                file: 'rd-hub-platform-08.webp',
                 alt: 'Статистика административной панели: пользователи, фесты, регистрации, команды и победители.',
               },
               {
-                file: 'rd-hub-platform-09.png',
+                file: 'rd-hub-platform-09.webp',
                 alt: 'Управление фестами: таблица с датами проведения, дедлайном регистрации, статусом и действиями.',
               },
               {
-                file: 'rd-hub-platform-10.png',
+                file: 'rd-hub-platform-10.webp',
                 alt: 'Управление участниками феста: командные участники, отметки победителей, статусы заявок и действия.',
               },
               {
-                file: 'rd-hub-platform-11.png',
+                file: 'rd-hub-platform-11.webp',
                 alt: 'Управление пользователями: таблица с контактами, университетом, специализацией и ролью на демонстрационных данных.',
               },
               {
-                file: 'rd-hub-platform-12.png',
+                file: 'rd-hub-platform-12.webp',
                 alt: 'Управление новостями: таблица публикаций с автором, привязкой к фесту и статусом публикации.',
               },
               {
-                file: 'rd-hub-platform-13.png',
+                file: 'rd-hub-platform-13.webp',
                 alt: 'Управление командами: таблица команд с фестом, лидером, числом участников и статусом.',
               },
             ],
@@ -1160,27 +1164,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'odesa-interactive-map-01.png',
+                file: 'odesa-interactive-map-01.webp',
                 alt: 'Интерактивная карта Одессы проекта «Рух без бар’єрів» с тематическими метками объектов.',
               },
               {
-                file: 'odesa-interactive-map-02.png',
+                file: 'odesa-interactive-map-02.webp',
                 alt: 'Выбранная метка на карте и боковая панель со статьёй о Доме учёных, фотографией и описанием.',
               },
               {
-                file: 'odesa-interactive-map-03.png',
+                file: 'odesa-interactive-map-03.webp',
                 alt: 'Каталог статей с сортировкой, категориями и открытой панелью просмотра материала.',
               },
               {
-                file: 'odesa-interactive-map-04.png',
+                file: 'odesa-interactive-map-04.webp',
                 alt: 'Административная панель: таблица статей с датой создания и действиями редактирования и удаления.',
               },
               {
-                file: 'odesa-interactive-map-05.png',
+                file: 'odesa-interactive-map-05.webp',
                 alt: 'Редактор статьи с названием, категорией, цветом типа, визуальным редактором текста и загрузкой изображения.',
               },
               {
-                file: 'odesa-interactive-map-06.png',
+                file: 'odesa-interactive-map-06.webp',
                 alt: 'Настройка метки статьи: выбор точки на карте, координаты, иконка, цвета и подпись маркера.',
               },
             ],
@@ -1193,11 +1197,11 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Python', 'aiogram', 'PostgreSQL', 'asyncpg', 'SQLAlchemy', 'APScheduler'],
             shots: [
               {
-                file: 'attendance-bot-01.png',
+                file: 'attendance-bot-01.webp',
                 alt: 'Личный кабинет тестового сотрудника в Telegram-боте: контакты, статус, напоминания и отметка о приходе, с меню действий.',
               },
               {
-                file: 'attendance-bot-02.png',
+                file: 'attendance-bot-02.webp',
                 alt: 'Регистрация сотрудника в боте с проверкой формата ФИО, телефона и даты рождения и настройкой начала рабочего дня.',
               },
             ],
@@ -1210,11 +1214,11 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Vue 3', 'Vuex', 'JavaScript', 'Node.js', 'Express.js'],
             shots: [
               {
-                file: 'password-generator-01.png',
+                file: 'password-generator-01.webp',
                 alt: 'Генератор паролей в режиме «слово + разделитель + префикс» со списком вариантов в украинской и английской раскладке и таблицей транслитерации.',
               },
               {
-                file: 'password-generator-02.png',
+                file: 'password-generator-02.webp',
                 alt: 'Генерация сложных паролей с расширенным префиксом из цифр, символов и букв двух алфавитов.',
               },
             ],
@@ -1252,19 +1256,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Moodle', 'Linux'],
             shots: [
               {
-                file: 'moodle-01.png',
+                file: 'moodle-01.webp',
                 alt: 'Главная страница университетской Moodle с поиском курсов и каталогом образовательно-профессиональных программ по уровням высшего образования.',
               },
               {
-                file: 'moodle-02.png',
+                file: 'moodle-02.webp',
                 alt: 'Панель администрирования Moodle с разделами аналитики, компетенций, значков, H5P и лицензий.',
               },
               {
-                file: 'moodle-03.png',
+                file: 'moodle-03.webp',
                 alt: 'Страница учебного курса с силлабусом, литературой и списком лекций с отметками о выполнении.',
               },
               {
-                file: 'moodle-04.png',
+                file: 'moodle-04.webp',
                 alt: 'Окно добавления активности или ресурса в курс: тесты, задания, форумы, H5P, SCORM и другие элементы.',
               },
             ],
@@ -1288,27 +1292,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
         demoUrl: 'https://konradiuss.github.io/artillery-calculator-stable',
         shots: [
           {
-            file: 'happy-shells-01.png',
+            file: 'happy-shells-01.webp',
             alt: 'Интерфейс режима прямого наведения с вводом дистанции, азимута, типа артиллерии и параметров ветра.',
           },
           {
-            file: 'happy-shells-02.png',
+            file: 'happy-shells-02.webp',
             alt: 'Результат расчёта прямого наведения с визуализацией направления стрельбы и положения цели.',
           },
           {
-            file: 'happy-shells-03.png',
+            file: 'happy-shells-03.webp',
             alt: 'История произведённых расчётов и справочник по влиянию силы ветра на разные типы артиллерии.',
           },
           {
-            file: 'happy-shells-04.png',
+            file: 'happy-shells-04.webp',
             alt: 'Режим триангуляции для вычисления необходимых поправок по координатам цели и точки попадания.',
           },
           {
-            file: 'happy-shells-05.png',
+            file: 'happy-shells-05.webp',
             alt: 'Режим групповой стрельбы с интерактивным размещением нескольких артиллерийских орудий на координатной сетке.',
           },
           {
-            file: 'happy-shells-06.png',
+            file: 'happy-shells-06.webp',
             alt: 'Рассчитанные поправки для группы орудий вместе с историей предыдущих групповых расчётов.',
           },
         ],
@@ -1326,27 +1330,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
         stack: ['Vue 3', 'TypeScript', 'Three.js', 'Vite', 'Vue Router', 'Vitest', 'Playwright'],
         shots: [
           {
-            file: 'disco-cv-01.png',
+            file: 'disco-cv-01.webp',
             alt: 'Главный экран DiscoCV с интерактивной 3D-диско-сценой, профилем разработчика, музыкальным плеером и переключателем языков.',
           },
           {
-            file: 'disco-cv-02.png',
+            file: 'disco-cv-02.webp',
             alt: 'Хронология опыта работы DiscoCV с должностями, компаниями, периодами и описаниями обязанностей.',
           },
           {
-            file: 'disco-cv-03.png',
+            file: 'disco-cv-03.webp',
             alt: 'Карточки рабочих проектов в DiscoCV со стеком технологий и галереями скриншотов.',
           },
           {
-            file: 'disco-cv-04.png',
+            file: 'disco-cv-04.webp',
             alt: 'Раздел пет-проектов DiscoCV с описаниями, ключевыми возможностями и технологическим стеком.',
           },
           {
-            file: 'disco-cv-05.png',
+            file: 'disco-cv-05.webp',
             alt: 'Матрица технических навыков DiscoCV, сгруппированная по направлениям и уровням владения.',
           },
           {
-            file: 'disco-cv-06.png',
+            file: 'disco-cv-06.webp',
             alt: 'Раздел образования и языков DiscoCV в нижней части интерактивного резюме.',
           },
         ],
@@ -1436,6 +1440,8 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
       closeScreenshot: 'Close screenshot',
       previousScreenshot: 'Previous screenshot',
       nextScreenshot: 'Next screenshot',
+      loadingScreenshot: 'Screenshot loading',
+      screenshotFailed: 'The screenshot could not be loaded',
       education: 'Education',
       languages: 'Languages',
       skillLevels: 'Skill levels',
@@ -1513,23 +1519,23 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'zoda-memorial-01.jpg',
+                file: 'zoda-memorial-01.webp',
                 alt: 'Home page of the “Меморіал Честі” online memorial with a description of the Book of Memory and a quick link to search.',
               },
               {
-                file: 'zoda-memorial-02.jpg',
+                file: 'zoda-memorial-02.webp',
                 alt: 'A Defender’s profile page on demo data: biography, awards, photo gallery, and profile QR code.',
               },
               {
-                file: 'zoda-memorial-03.jpg',
+                file: 'zoda-memorial-03.webp',
                 alt: 'Interactive map of burial sites in the Zaporizhzhia region with marker clusters and a district filter.',
               },
               {
-                file: 'zoda-memorial-04.jpg',
+                file: 'zoda-memorial-04.webp',
                 alt: 'Catalog of burial sites by district and community with cards of the Heroes at the selected site, on demo data.',
               },
               {
-                file: 'zoda-memorial-05.jpg',
+                file: 'zoda-memorial-05.webp',
                 alt: 'Payload CMS admin panel with sections for the memorial, reference data, site content, and administration.',
               },
             ],
@@ -1553,19 +1559,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'air-monitor-kyiv-01.png',
+                file: 'air-monitor-kyiv-01.webp',
                 alt: 'Immediate-threat alert with a local map of the Kyiv region, the affected districts and communities, and source diagnostics.',
               },
               {
-                file: 'air-monitor-kyiv-02.png',
+                file: 'air-monitor-kyiv-02.webp',
                 alt: 'Threat alert for the city of Kyiv with an overview map of the region and a detailed map of the Bucha district’s communities.',
               },
               {
-                file: 'air-monitor-kyiv-03.png',
+                file: 'air-monitor-kyiv-03.webp',
                 alt: 'The Telegram bot’s welcome message describing its sources, data retention policy, and command menu.',
               },
               {
-                file: 'air-monitor-kyiv-04.png',
+                file: 'air-monitor-kyiv-04.webp',
                 alt: 'Choosing districts of the Kyiv region and the city of Kyiv to subscribe to alerts.',
               },
             ],
@@ -1623,19 +1629,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'belnet-erp-01.jpg',
+                file: 'belnet-erp-01.webp',
                 alt: 'ERP leads module: summary figures by status and a table of requests with source, campaign, status, and assigned manager.',
               },
               {
-                file: 'belnet-erp-02.jpg',
+                file: 'belnet-erp-02.webp',
                 alt: 'Workforce module: a table of employees with position, access group, status, two-factor authentication, and last activity.',
               },
               {
-                file: 'belnet-erp-03.jpg',
+                file: 'belnet-erp-03.webp',
                 alt: 'Sign-in screen for the ERP workspace with email and password or Google.',
               },
               {
-                file: 'belnet-erp-04.jpg',
+                file: 'belnet-erp-04.webp',
                 alt: 'Leads table with system fields and tabs of open modules in the top bar of the interface.',
               },
             ],
@@ -1648,15 +1654,15 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Vue', 'JavaScript', 'Tailwind CSS', 'REST API'],
             shots: [
               {
-                file: 'belnet-telegram-mini-app-01.png',
+                file: 'belnet-telegram-mini-app-01.webp',
                 alt: 'Subscriber creation form in the Telegram Mini App: client details, connection address, and choice of services.',
               },
               {
-                file: 'belnet-telegram-mini-app-02.png',
+                file: 'belnet-telegram-mini-app-02.webp',
                 alt: 'Mobile version of the subscriber creation form with password and phone number validation.',
               },
               {
-                file: 'belnet-telegram-mini-app-03.png',
+                file: 'belnet-telegram-mini-app-03.webp',
                 alt: 'Mobile version of the form: a note, optional router details, and the create-user button.',
               },
             ],
@@ -1718,55 +1724,55 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'rd-hub-platform-01.png',
+                file: 'rd-hub-platform-01.webp',
                 alt: 'R&D Hub home page with a description of the platform and a selection of current fests.',
               },
               {
-                file: 'rd-hub-platform-02.png',
+                file: 'rd-hub-platform-02.webp',
                 alt: 'News catalog with search, a fest filter, and publication cards.',
               },
               {
-                file: 'rd-hub-platform-03.png',
+                file: 'rd-hub-platform-03.webp',
                 alt: 'A single news page about the opening of the innovation lab.',
               },
               {
-                file: 'rd-hub-platform-04.png',
+                file: 'rd-hub-platform-04.webp',
                 alt: 'Fest catalog with filters by status, keywords, and dates.',
               },
               {
-                file: 'rd-hub-platform-05.png',
+                file: 'rd-hub-platform-05.webp',
                 alt: 'An active fest page with dates, venue, participant count, and buttons to register and create a team.',
               },
               {
-                file: 'rd-hub-platform-06.png',
+                file: 'rd-hub-platform-06.webp',
                 alt: 'Fest registration dialog with a choice between individual participation and joining a team by code.',
               },
               {
-                file: 'rd-hub-platform-07.png',
+                file: 'rd-hub-platform-07.webp',
                 alt: 'Winners of a finished fest with teams and jury comments.',
               },
               {
-                file: 'rd-hub-platform-08.png',
+                file: 'rd-hub-platform-08.webp',
                 alt: 'Admin panel statistics: users, fests, registrations, teams, and winners.',
               },
               {
-                file: 'rd-hub-platform-09.png',
+                file: 'rd-hub-platform-09.webp',
                 alt: 'Fest management: a table with dates, registration deadline, status, and actions.',
               },
               {
-                file: 'rd-hub-platform-10.png',
+                file: 'rd-hub-platform-10.webp',
                 alt: 'Fest participant management: team members, winner marks, application statuses, and actions.',
               },
               {
-                file: 'rd-hub-platform-11.png',
+                file: 'rd-hub-platform-11.webp',
                 alt: 'User management: a table with contacts, university, specialization, and role, on demo data.',
               },
               {
-                file: 'rd-hub-platform-12.png',
+                file: 'rd-hub-platform-12.webp',
                 alt: 'News management: a table of publications with author, linked fest, and publication status.',
               },
               {
-                file: 'rd-hub-platform-13.png',
+                file: 'rd-hub-platform-13.webp',
                 alt: 'Team management: a table of teams with fest, leader, participant count, and status.',
               },
             ],
@@ -1789,27 +1795,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             ],
             shots: [
               {
-                file: 'odesa-interactive-map-01.png',
+                file: 'odesa-interactive-map-01.webp',
                 alt: 'Interactive map of Odesa for the “Рух без бар’єрів” project with themed markers for places.',
               },
               {
-                file: 'odesa-interactive-map-02.png',
+                file: 'odesa-interactive-map-02.webp',
                 alt: 'A selected map marker and a side panel with an article about the House of Scientists, a photo, and a description.',
               },
               {
-                file: 'odesa-interactive-map-03.png',
+                file: 'odesa-interactive-map-03.webp',
                 alt: 'Article catalog with sorting, categories, and an open article preview panel.',
               },
               {
-                file: 'odesa-interactive-map-04.png',
+                file: 'odesa-interactive-map-04.webp',
                 alt: 'Admin panel: a table of articles with creation date and edit and delete actions.',
               },
               {
-                file: 'odesa-interactive-map-05.png',
+                file: 'odesa-interactive-map-05.webp',
                 alt: 'Article editor with title, category, type color, a rich text editor, and image upload.',
               },
               {
-                file: 'odesa-interactive-map-06.png',
+                file: 'odesa-interactive-map-06.webp',
                 alt: 'Article marker settings: point on the map, coordinates, icon, colors, and marker label.',
               },
             ],
@@ -1822,11 +1828,11 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Python', 'aiogram', 'PostgreSQL', 'asyncpg', 'SQLAlchemy', 'APScheduler'],
             shots: [
               {
-                file: 'attendance-bot-01.png',
+                file: 'attendance-bot-01.webp',
                 alt: 'A test employee’s profile in the Telegram bot: contacts, status, reminders, and arrival check-in, with the action menu.',
               },
               {
-                file: 'attendance-bot-02.png',
+                file: 'attendance-bot-02.webp',
                 alt: 'Employee registration in the bot with validation of full name, phone, and date of birth, and setting the workday start.',
               },
             ],
@@ -1839,11 +1845,11 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Vue 3', 'Vuex', 'JavaScript', 'Node.js', 'Express.js'],
             shots: [
               {
-                file: 'password-generator-01.png',
+                file: 'password-generator-01.webp',
                 alt: 'Password generator in “word + separator + prefix” mode with a list of options in Ukrainian and English keyboard layouts and a transliteration table.',
               },
               {
-                file: 'password-generator-02.png',
+                file: 'password-generator-02.webp',
                 alt: 'Generating strong passwords with an extended prefix of digits, symbols, and letters from two alphabets.',
               },
             ],
@@ -1882,19 +1888,19 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
             stack: ['Moodle', 'Linux'],
             shots: [
               {
-                file: 'moodle-01.png',
+                file: 'moodle-01.webp',
                 alt: 'Home page of the university’s Moodle with course search and a catalog of educational programs by level of higher education.',
               },
               {
-                file: 'moodle-02.png',
+                file: 'moodle-02.webp',
                 alt: 'Moodle site administration with sections for analytics, competencies, badges, H5P, and licenses.',
               },
               {
-                file: 'moodle-03.png',
+                file: 'moodle-03.webp',
                 alt: 'A course page with the syllabus, reading list, and lectures with completion marks.',
               },
               {
-                file: 'moodle-04.png',
+                file: 'moodle-04.webp',
                 alt: 'Dialog for adding an activity or resource to a course: quizzes, assignments, forums, H5P, SCORM, and more.',
               },
             ],
@@ -1918,27 +1924,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
         demoUrl: 'https://konradiuss.github.io/artillery-calculator-stable',
         shots: [
           {
-            file: 'happy-shells-01.png',
+            file: 'happy-shells-01.webp',
             alt: 'Direct aiming mode with inputs for distance, azimuth, artillery type, and wind.',
           },
           {
-            file: 'happy-shells-02.png',
+            file: 'happy-shells-02.webp',
             alt: 'Direct aiming result with a visualization of the firing direction and target position.',
           },
           {
-            file: 'happy-shells-03.png',
+            file: 'happy-shells-03.webp',
             alt: 'History of calculations and a reference on how wind strength affects different artillery types.',
           },
           {
-            file: 'happy-shells-04.png',
+            file: 'happy-shells-04.webp',
             alt: 'Triangulation mode for calculating corrections from the target and impact coordinates.',
           },
           {
-            file: 'happy-shells-05.png',
+            file: 'happy-shells-05.webp',
             alt: 'Group fire mode with interactive placement of several artillery pieces on a coordinate grid.',
           },
           {
-            file: 'happy-shells-06.png',
+            file: 'happy-shells-06.webp',
             alt: 'Calculated corrections for a group of guns together with the history of previous group calculations.',
           },
         ],
@@ -1956,27 +1962,27 @@ export const resumeByLocale: Record<Locale, ResumeContent> = {
         stack: ['Vue 3', 'TypeScript', 'Three.js', 'Vite', 'Vue Router', 'Vitest', 'Playwright'],
         shots: [
           {
-            file: 'disco-cv-01.png',
+            file: 'disco-cv-01.webp',
             alt: 'DiscoCV home screen with an interactive 3D disco scene, developer profile, music player, and language switcher.',
           },
           {
-            file: 'disco-cv-02.png',
+            file: 'disco-cv-02.webp',
             alt: 'DiscoCV work experience timeline with roles, companies, dates, and responsibility summaries.',
           },
           {
-            file: 'disco-cv-03.png',
+            file: 'disco-cv-03.webp',
             alt: 'Work project cards in DiscoCV with technology stacks and screenshot galleries.',
           },
           {
-            file: 'disco-cv-04.png',
+            file: 'disco-cv-04.webp',
             alt: 'DiscoCV pet projects section with descriptions, key features, and technology stacks.',
           },
           {
-            file: 'disco-cv-05.png',
+            file: 'disco-cv-05.webp',
             alt: 'DiscoCV technical skills matrix grouped by discipline and proficiency level.',
           },
           {
-            file: 'disco-cv-06.png',
+            file: 'disco-cv-06.webp',
             alt: 'DiscoCV education and languages section near the end of the interactive resume.',
           },
         ],
