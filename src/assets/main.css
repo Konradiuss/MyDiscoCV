@@ -1052,7 +1052,25 @@ h3 {
 .work-project-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  /*
+   * auto-fit rather than auto-fill: auto-fill keeps the empty tracks, so two
+   * projects sat hunched at the left of a four-wide row with the rest of it
+   * blank. The floor on a track is a quarter of the row, which is what holds
+   * the cards to four abreast however wide the page gets.
+   */
+  grid-template-columns: repeat(auto-fit, minmax(max(min(100%, 230px), (100% - 36px) / 4), 1fr));
+}
+
+/*
+ * One project on its own would be stretched the whole way across, where it
+ * stops reading as a card and starts reading as a banner.
+ */
+.work-project-grid > .work-project:only-child {
+  /* An explicit width, because the auto margins below switch off the stretch a
+     grid item normally gets, and `auto` would then fall back to the width of
+     the text inside — a different card for every project. */
+  width: min(100%, 560px);
+  margin-inline: auto;
 }
 
 .work-project {
