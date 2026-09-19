@@ -6,8 +6,13 @@ import { createPlaylistQueue } from './playlistQueue'
 import { resolveTracks } from './trackSources'
 
 /**
- * Background music. Browsers block audible playback until the visitor interacts
- * with the page, so playback is retried on the first gesture.
+ * Background music, started only where the visitor asks for it: the corner
+ * toggle, the turntable buttons, or picking a sleeve.
+ *
+ * Browsers block audible playback until the visitor interacts with the page.
+ * This module used to answer a refusal by listening for a gesture anywhere on
+ * the window and retrying — see the commented-out `armGesture` below and the
+ * note in src/components/ResumePage.vue for why that is switched off.
  */
 
 export interface AudioElementLike {
@@ -178,14 +183,24 @@ export function createMusicPlayer(deps: MusicPlayerDeps): MusicPlayer {
     attemptPlay()
   }
 
-  function armGesture() {
-    if (gestureArmed || !deps.gestureTarget) return
-
-    gestureArmed = true
-    GESTURE_EVENTS.forEach((type) => {
-      deps.gestureTarget?.addEventListener(type, handleGesture, { capture: true, passive: true })
-    })
-  }
+  /*
+   * Switched off together with autoplay in src/components/ResumePage.vue.
+   *
+   * These listeners sat on the window in the capture phase and were never taken
+   * off until playback finally succeeded, so any click, tap or keypress at all
+   * could start the music — not just the first one, and not only the ones aimed
+   * at the player. Restore this and the call in handleBlocked() below if the
+   * autoplay attempt is ever brought back; on its own it would do nothing,
+   * because nothing arms it.
+   */
+  // function armGesture() {
+  //   if (gestureArmed || !deps.gestureTarget) return
+  //
+  //   gestureArmed = true
+  //   GESTURE_EVENTS.forEach((type) => {
+  //     deps.gestureTarget?.addEventListener(type, handleGesture, { capture: true, passive: true })
+  //   })
+  // }
 
   function releaseGesture() {
     if (!gestureArmed || !deps.gestureTarget) return
@@ -199,7 +214,7 @@ export function createMusicPlayer(deps: MusicPlayerDeps): MusicPlayer {
   function handleBlocked() {
     isPlaying.value = false
     isBlocked.value = true
-    armGesture()
+    // armGesture()
   }
 
   function selectTrack(index: number) {

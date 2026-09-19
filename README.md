@@ -21,12 +21,12 @@ An interactive resume and portfolio set in a 3D disco room. A mirror ball throws
 - **Accessible controls**: every control in the 3D scene is a real HTML button or slider with a label and keyboard support.
 - **No backend**: a static site, deployed to GitHub Pages.
 
-| Work experience | Project screenshots |
-| --- | --- |
+| Work experience                                            | Project screenshots                                        |
+| ---------------------------------------------------------- | ---------------------------------------------------------- |
 | ![Work experience timeline](.github/readme/experience.jpg) | ![Screenshot viewer](.github/readme/screenshot-viewer.jpg) |
 
-| Skills | The floor at the end of the page |
-| --- | --- |
+| Skills                                       | The floor at the end of the page                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------ |
 | ![Skills section](.github/readme/skills.jpg) | ![Turntable, speaker and record sleeves](.github/readme/disco-floor.jpg) |
 
 <p align="center">
@@ -91,19 +91,19 @@ Then open http://localhost:5173.
 
 ### Scripts
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Start the dev server |
-| `npm run build` | Type-check and build for production |
-| `npm run preview` | Serve the production build locally |
-| `npm run test:unit` | Run unit tests with Vitest |
-| `npm run test:e2e` | Run end-to-end tests with Playwright (run `npx playwright install` first) |
-| `npm run resume:pdf` | Generate the PDF resumes (`-- en` for one language, `-- --preview` to also save PNG previews) |
+| Command                  | What it does                                                                                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`            | Start the dev server                                                                                                                                   |
+| `npm run build`          | Type-check and build for production                                                                                                                    |
+| `npm run preview`        | Serve the production build locally                                                                                                                     |
+| `npm run test:unit`      | Run unit tests with Vitest                                                                                                                             |
+| `npm run test:e2e`       | Run end-to-end tests with Playwright (run `npx playwright install` first)                                                                              |
+| `npm run resume:pdf`     | Generate the PDF resumes (`-- en` for one language, `-- --preview` to also save PNG previews)                                                          |
 | `npm run shots:optimize` | Build the shipped screenshots from `src/assets/shots-source/` (`-- --force` to rebuild everything, `-- --width`/`-- --quality` to change the settings) |
-| `npm run share:image` | Photograph the room for the link previews (`-- en` for one language, `-- --skip-build` to reuse `dist/`, `-- --motion` to let the halo animate first) |
-| `npm run icons:build` | Build the home-screen icons and `site.webmanifest` from `compact-disc.svg` |
-| `npm run lint` | Run Oxlint and ESLint |
-| `npm run format` | Format the code with Prettier |
+| `npm run share:image`    | Photograph the room for the link previews (`-- en` for one language, `-- --skip-build` to reuse `dist/`, `-- --motion` to let the halo animate first)  |
+| `npm run icons:build`    | Build the home-screen icons and `site.webmanifest` from `compact-disc.svg`                                                                             |
+| `npm run lint`           | Run Oxlint and ESLint                                                                                                                                  |
+| `npm run format`         | Format the code with Prettier                                                                                                                          |
 
 ## Deployment
 
@@ -115,6 +115,19 @@ To deploy a fork:
 2. Push to `main`, or run the workflow manually from the **Actions** tab.
 
 The build takes its base path from the `PAGES_BASE` environment variable, which the workflow sets to `/<repository-name>/`. GitHub Pages has no fallback for single-page apps, so the build also writes a copy of `index.html` for each language route and a `404.html`.
+
+### Refreshing the link previews
+
+Messengers cache the card they build for a link and go on showing an old one long after the site itself has changed. Telegram is the most stubborn of them, and it caches by the exact URL string, so the root and each language route are separate entries. After a deploy that touched `index.html`, `scripts/shareMeta.ts` or the `og-*.jpg` pictures, refresh every address you actually send to people — the site root, `/ua`, `/ru` and `/en`:
+
+| Platform | Tool                                                                               | Note                                                       |
+| -------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| WhatsApp | [Sharing Debugger](https://developers.facebook.com/tools/debug/), **Scrape Again** | Do this one first: it also clears the cache WhatsApp reads |
+| Telegram | send the link to [@WebpageBot](https://t.me/WebpageBot)                            | The only way there is; give it each address separately     |
+| LinkedIn | [Post Inspector](https://www.linkedin.com/post-inspector/)                         | Re-scrapes on every request                                |
+| X        | paste into the post composer, look, throw the draft away                           | The card validator was retired in 2022                     |
+
+Telegram builds previews in Saved Messages as well, which is the quietest place to check the result.
 
 ## License
 

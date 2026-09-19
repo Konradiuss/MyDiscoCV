@@ -62,6 +62,12 @@ test('answers the keyboard as well as the pointer', async ({ page }) => {
 test('plays a picked sleeve even after the music was switched off', async ({ page }) => {
   await openFloor(page)
   const corner = page.locator('.resume-page__chrome')
+
+  // Switched off means switched off by hand, which takes playing first: the
+  // room now opens silent, and silent is not the same state as refused.
+  await corner.getByRole('button', { name: 'Play music' }).click()
+  await expect(corner.getByRole('button', { name: 'Pause music' })).toBeVisible()
+
   await corner.getByRole('button', { name: 'Pause music' }).click()
   await expect(corner.getByRole('button', { name: 'Play music' })).toBeVisible()
 

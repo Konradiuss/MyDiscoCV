@@ -133,40 +133,36 @@ describe('music player', () => {
     expect(player.isPlaying.value).toBe(true)
   })
 
-  it('waits for a gesture when the browser refuses to autoplay', async () => {
+  it('listens to nothing when the browser refuses to play', async () => {
     const { audio, gestureTarget, player } = setup()
     audio.blocked = true
 
-    player.start()
+    player.toggle()
     await flush()
 
     expect(player.isBlocked.value).toBe(true)
     expect(player.isPlaying.value).toBe(false)
-    expect(gestureTarget.armedTypes).toContain('pointerdown')
     expect(player.currentTrack.value).toEqual(tracks[0])
-
-    audio.blocked = false
-    gestureTarget.emit('pointerdown')
-    audio.emit('playing')
-
-    expect(audio.playCount).toBe(2)
-    expect(player.isBlocked.value).toBe(false)
-    expect(player.isPlaying.value).toBe(true)
     expect(gestureTarget.armedTypes).toEqual([])
   })
 
-  it('keeps listening when the first gesture is not enough', async () => {
+  it('never starts itself from a gesture elsewhere on the page', async () => {
     const { audio, gestureTarget, player } = setup()
     audio.blocked = true
 
-    player.start()
+    player.toggle()
     await flush()
+    expect(audio.playCount).toBe(1)
 
+    // The refusal is over, but nothing may act on that except the visitor.
+    audio.blocked = false
     gestureTarget.emit('pointerdown')
+    gestureTarget.emit('keydown')
+    gestureTarget.emit('touchstart')
     await flush()
 
-    expect(audio.playCount).toBe(2)
-    expect(gestureTarget.armedTypes).toContain('pointerdown')
+    expect(audio.playCount).toBe(1)
+    expect(player.isPlaying.value).toBe(false)
   })
 
   it('leaves the element to loop the track it is playing', () => {
@@ -250,7 +246,7 @@ describe('music player', () => {
     expect(audio.playCount).toBe(2)
   })
 
-  it('starts from the toggle when autoplay never happened', () => {
+  it('starts from the toggle even when the music was left switched off', () => {
     const { audio, player } = setup({
       storage: createFakeStorage({ 'discocv.music.enabled': 'false' }),
     })

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, onMounted, ref, watchEffect } from 'vue'
+import { computed, defineAsyncComponent, ref, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { readAudioLevels } from '@/audio/audioLevels'
-import { startMusicPlayback, useMusicPlayer } from '@/audio/musicPlayer'
+import { useMusicPlayer } from '@/audio/musicPlayer'
 import { defaultLocale, isLocale, resumeByLocale } from '@/data/resume'
 import {
   LOADING_MILESTONES,
   reportLoadingProgress,
   signalLoadingReady,
-  whenLoadingScreenGone,
 } from '@/loading/loadingScreen'
 import type { Locale } from '@/types/resume'
 import type { BallScreenGeometry } from './disco/ballProjection'
@@ -65,9 +64,26 @@ watchEffect(() => {
   document.title = `${resume.value.profile.name} | ${resume.value.profile.title}`
 })
 
-onMounted(() => {
-  void whenLoadingScreenGone().then(startMusicPlayback)
-})
+/*
+ * Autoplay, switched off on purpose.
+ *
+ * Browsers refuse audible playback until the visitor has interacted with the
+ * page, so this attempt was rejected nearly every time, and the rejection armed
+ * a retry in musicPlayer.ts that listened for a gesture anywhere on the window.
+ * The retry then started the music on whatever the visitor happened to touch
+ * next — a link, a scroll, a key — which reads as a bug rather than a feature.
+ * Music now starts only where the visitor asked for it: the corner toggle, the
+ * turntable buttons, or picking a sleeve.
+ *
+ * Turning it back on takes three things, not one: this block, the three imports
+ * it needs (`onMounted`, `startMusicPlayback`, `whenLoadingScreenGone`), and the
+ * commented-out `armGesture` in src/audio/musicPlayer.ts. Without that last one
+ * the attempt below is made once, refused, and never retried, which leaves the
+ * room silent in every current browser.
+ */
+// onMounted(() => {
+//   void whenLoadingScreenGone().then(startMusicPlayback)
+// })
 
 const player = useMusicPlayer()
 

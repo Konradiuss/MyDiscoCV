@@ -14,10 +14,12 @@ async function readVolume(page: import('@playwright/test').Page) {
   return Number.parseInt(label?.replace(/\D+/g, '') ?? '', 10)
 }
 
+/* Nothing plays until it is asked to, so every test that needs music asks. */
 async function openResume(page: import('@playwright/test').Page) {
   await page.goto('/en')
   await expect(page.locator('#loading-screen')).toHaveCount(0, { timeout: 25000 })
-  await page.locator('h1').click()
+  await corner(page).getByRole('button', silent).click()
+  await expect(corner(page).getByRole('button', playing)).toBeVisible()
 }
 
 test('has the label in place the moment the loading screen goes', async ({ page }) => {
@@ -61,34 +63,24 @@ test('the toggle stops and resumes the music', async ({ page }) => {
   await expect(page.locator(nowPlayingActive)).toBeVisible()
 })
 
-test('waits for the first gesture when the browser refuses to autoplay', async ({ page }) => {
-  await page.addInitScript(() => {
-    const play = HTMLMediaElement.prototype.play
-    let activated = false
-    const activate = () => {
-      activated = true
-    }
-
-    window.addEventListener('pointerdown', activate, { capture: true })
-    window.addEventListener('keydown', activate, { capture: true })
-
-    HTMLMediaElement.prototype.play = function playWhenActivated(this: HTMLMediaElement) {
-      if (!activated) return Promise.reject(new DOMException('blocked', 'NotAllowedError'))
-      return play.call(this)
-    }
-  })
-
+test('nothing the visitor touches elsewhere ever starts the music', async ({ page }) => {
   await page.goto('/en')
   await expect(page.locator('#loading-screen')).toHaveCount(0, { timeout: 25000 })
 
   await expect(corner(page).getByRole('button', silent)).toBeVisible()
   await expect(page.locator('.now-playing__title')).toHaveText('Crab Apple')
-  await expect(page.locator(nowPlayingActive)).toHaveCount(0)
 
+  // The three gestures the old first-gesture retry listened for. A letter key,
+  // not Space, which would scroll the page out from under the assertions.
   await page.locator('h1').click()
+  await page.keyboard.press('KeyA')
+  await page.mouse.wheel(0, 400)
 
-  await expect(corner(page).getByRole('button', playing)).toBeVisible()
-  await expect(page.locator(nowPlayingActive)).toBeVisible()
+  // Proving an absence: there is no event to wait for, so give it a moment.
+  await page.waitForTimeout(500)
+
+  await expect(corner(page).getByRole('button', silent)).toBeVisible()
+  await expect(page.locator(nowPlayingActive)).toHaveCount(0)
 })
 
 test('sets the element to loop, so a track that ends comes round again', async ({ page }) => {
