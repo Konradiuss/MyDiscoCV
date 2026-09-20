@@ -22,6 +22,7 @@ import {
   REFLECTION_SPOT_SHAPE_ATTRIBUTE,
   createReflectionSpotMaterial,
 } from './disco/reflectionSpotMaterial'
+import { BALL_RADIUS, BALL_REST_Y, getBallRestY } from './disco/ballPlacement'
 import { shouldAnimateScene } from './disco/sceneLoop'
 import {
   getStaticQualityTier,
@@ -188,7 +189,7 @@ let recordSleeveSize = 0
 let floorProps: FloorPropSet | null = null
 let sleevePatchKey = ''
 let canvasRect: ScreenRect | null = null
-let reflectionAnchorY = 1.88
+let reflectionAnchorY = BALL_REST_Y
 let reflectionStrength = 1
 let reflectionTravelTurns = 0
 let animationFrame = 0
@@ -203,8 +204,11 @@ let lastPointerX = 0
 let lastPointerTime = 0
 let spinVelocity = 0
 
-const initialBallY = 1.88
-const ballRadius = 0.48
+/* The ball hangs lower on a phone; see ballPlacement.ts for why. */
+function ballRestY() {
+  return getBallRestY(isNarrowViewport())
+}
+const ballRadius = BALL_RADIUS
 const facetSeam = 0.11
 const ballAutoSpinSpeed = 0.16
 const ballReducedMotionSpinSpeed = 0.05
@@ -649,15 +653,15 @@ function createRoomLights() {
   scene.add(new THREE.AmbientLight(0x171020, 0.26))
 
   topLightTarget = new THREE.Object3D()
-  topLightTarget.position.set(0, initialBallY, 0)
+  topLightTarget.position.set(0, ballRestY(), 0)
   topLight = new THREE.SpotLight(0xeaf8ff, 170, 12, 0.34, 0.48, 2)
-  topLight.position.set(0, initialBallY + 3.1, 1.45)
+  topLight.position.set(0, ballRestY() + 3.1, 1.45)
   topLight.target = topLightTarget
 
   reflectedLightTarget = new THREE.Object3D()
   reflectedLightTarget.position.set(0, roomFloorY, -0.9)
   reflectedLight = new THREE.SpotLight(0x78cfff, 48, 18, 1.08, 0.42, 2)
-  reflectedLight.position.set(0, initialBallY - 0.12, 0.05)
+  reflectedLight.position.set(0, ballRestY() - 0.12, 0.05)
   reflectedLight.target = reflectedLightTarget
 
   scene.add(topLightTarget, topLight, reflectedLightTarget, reflectedLight)
@@ -2526,7 +2530,7 @@ function createDiscoBall() {
   if (!scene) return
 
   ballGroup = new THREE.Group()
-  ballGroup.position.set(0, initialBallY, 0)
+  ballGroup.position.set(0, ballRestY(), 0)
   scene.add(ballGroup)
 
   const latitudeSegments = activeQuality.ballSegments
@@ -2670,8 +2674,9 @@ function updateSceneFromScroll() {
 
   const worldPerViewport = isNarrowViewport() ? 5.15 : 5.8
   const ballTravel = (scrollTop / viewportHeight) * worldPerViewport
-  const ballY = initialBallY + ballTravel
-  reflectionAnchorY = initialBallY + Math.min(ballTravel, 1.28)
+  const restY = ballRestY()
+  const ballY = restY + ballTravel
+  reflectionAnchorY = restY + Math.min(ballTravel, 1.28)
   const deviceLightStrength = isNarrowViewport() ? 0.72 : 1
   reflectionStrength =
     THREE.MathUtils.lerp(1, 0.68, clamp01(scrollTop / (viewportHeight * 2.6))) * deviceLightStrength
@@ -3313,14 +3318,19 @@ onBeforeUnmount(() => {
   cursor: ns-resize;
 }
 
+/*
+ * 82px, not 42px: PHONE_BALL_DROP in disco/ballPlacement.ts lowers the rendered
+ * ball by roughly 40 screen pixels here, and these two boxes are hand-placed
+ * approximations of where it lands. Change that constant and change these.
+ */
 @media (max-width: 720px) {
   .disco-room-fallback__ball {
-    top: 42px;
+    top: 82px;
     width: min(230px, 32vh);
   }
 
   .disco-ball-hit-area {
-    top: 42px;
+    top: 82px;
     width: 230px;
     height: 230px;
   }

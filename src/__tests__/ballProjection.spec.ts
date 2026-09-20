@@ -2,9 +2,11 @@ import * as THREE from 'three'
 import { describe, expect, it } from 'vitest'
 
 import { getBallScreenGeometry, getObjectScreenRect } from '../components/disco/ballProjection'
+import { BALL_RADIUS, getBallRestY } from '../components/disco/ballPlacement'
 
-const BALL_RADIUS = 0.48
-const BALL_CENTER = new THREE.Vector3(0, 1.88, 0)
+/* Imported, not copied: a local 1.88 would go on testing a ball that moved. */
+const BALL_CENTER = new THREE.Vector3(0, getBallRestY(false), 0)
+const PHONE_BALL_CENTER = new THREE.Vector3(0, getBallRestY(true), 0)
 
 function createCamera(fov: number, width: number, height: number) {
   const camera = new THREE.PerspectiveCamera(fov, width / height, 0.1, 100)
@@ -41,15 +43,31 @@ describe('ball screen projection', () => {
       BALL_RADIUS,
       viewOf(1440, 900),
     )!
+    // The phone ball hangs lower, so this is the centre it really has there.
     const mobile = getBallScreenGeometry(
       createCamera(31, 390, 844),
-      BALL_CENTER,
+      PHONE_BALL_CENTER,
       BALL_RADIUS,
       viewOf(390, 844),
     )!
 
     expect(desktop.diameter).toBeLessThan(280)
     expect(mobile.diameter).toBeGreaterThan(230)
+  })
+
+  /*
+   * The whole point of the drop: on a phone the ball has to sit lower on screen
+   * than it would at the desktop resting height, and by a visible amount.
+   */
+  it('puts the phone ball lower down the screen than the resting height would', () => {
+    const camera = createCamera(31, 390, 844)
+    const view = viewOf(390, 844)
+
+    const resting = getBallScreenGeometry(camera, BALL_CENTER, BALL_RADIUS, view)!
+    const dropped = getBallScreenGeometry(camera, PHONE_BALL_CENTER, BALL_RADIUS, view)!
+
+    expect(dropped.centerY).toBeGreaterThan(resting.centerY + 20)
+    expect(dropped.centerX).toBeCloseTo(resting.centerX, 6)
   })
 
   it('is larger than a naive on-axis estimate, because the ball sits off axis', () => {

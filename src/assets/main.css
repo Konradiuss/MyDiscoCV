@@ -1881,9 +1881,47 @@ h3 {
     grid-row: 2;
   }
 
+  /*
+   * The readouts, shown by what actually fits rather than by a guess at the
+   * window. Below 520px both the clock and the track time were hidden outright,
+   * so a 276px panel at 425px sat holding one 58px reading with air either side
+   * — while all three need only 213px.
+   *
+   * A container query can ask this box its width only because the box no longer
+   * decides it: above 430px the corner is shrink-to-fit with `auto` columns, and
+   * isolating the panel's size there would hand the question to the language
+   * switcher instead. Here the corner spans the screen and the panel sits in a
+   * `1fr` track, so the grid answers and the query is honest.
+   */
   .status-panel {
     grid-column: 2;
     grid-row: 3;
+    container-type: inline-size;
+    /* Tracks from the content, so a hidden reading leaves no empty column and
+       whatever survives stands as one centred group. */
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    justify-content: center;
+  }
+
+  /*
+   * Volume is never in doubt; these two earn their place. Widths are fixed by
+   * the glyph grid — 57.6px for the volume, 65.7px each for the two clocks —
+   * so the thresholds are just those sums plus the 12px gaps.
+   *
+   * These win over the `display: none` at 520px on source order, not weight:
+   * both selectors carry a single class.
+   */
+  @container (min-width: 136px) {
+    .track-time {
+      display: grid;
+    }
+  }
+
+  @container (min-width: 214px) {
+    .wall-clock {
+      display: grid;
+    }
   }
 }
 

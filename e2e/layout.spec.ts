@@ -114,3 +114,57 @@ for (const width of [320, 390, 430, 520, 1440]) {
     expect(rows).toBe(width <= 430 ? 2 : 1)
   })
 }
+
+/*
+ * The readouts are drawn by what fits, not by a guess at the window. Each is a
+ * fixed width — 58px for the volume, 66px for either clock — so the panel can
+ * be asked its own width and answered honestly.
+ */
+const readouts = {
+  clock: '.wall-clock',
+  volume: '.volume-display',
+  track: '.track-time',
+} as const
+
+async function visibleReadouts(page: import('@playwright/test').Page) {
+  return page.evaluate((selectors: Record<string, string>) => {
+    const shown: string[] = []
+    for (const [name, selector] of Object.entries(selectors)) {
+      const node = document.querySelector(selector)
+      if (node && getComputedStyle(node).display !== 'none') shown.push(name)
+    }
+    return shown.sort()
+  }, readouts)
+}
+
+for (const [width, expected] of [
+  [320, ['track', 'volume']],
+  [390, ['clock', 'track', 'volume']],
+  [430, ['clock', 'track', 'volume']],
+  [1440, ['clock', 'track', 'volume']],
+] as const) {
+  test(`the readout panel fills itself at ${width}px`, async ({ page }) => {
+    await open(page, width, 800)
+
+    expect(await visibleReadouts(page)).toEqual([...expected])
+
+    // Whatever is shown has to stay inside the box that was measured for it.
+    const overflow = await page.evaluate(() => {
+      const panel = document.querySelector('.status-panel')!.getBoundingClientRect()
+      return [...document.querySelectorAll('.status-panel > *')]
+        .filter((node) => getComputedStyle(node).display !== 'none')
+        .some((node) => {
+          const box = node.getBoundingClientRect()
+          return box.left < panel.left - 0.5 || box.right > panel.right + 0.5
+        })
+    })
+
+    expect(overflow).toBe(false)
+  })
+}
+
+test('the volume is never the reading that gets dropped', async ({ page }) => {
+  await open(page, 320, 800)
+
+  await expect(page.locator('.volume-display')).toBeVisible()
+})
