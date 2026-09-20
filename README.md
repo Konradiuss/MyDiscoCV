@@ -102,7 +102,7 @@ Then open http://localhost:5173.
 | `npm run shots:optimize` | Build the shipped screenshots from `src/assets/shots-source/` (`-- --force` to rebuild everything, `-- --width`/`-- --quality` to change the settings) |
 | `npm run share:image`    | Photograph the room for the link previews (`-- en` for one language, `-- --skip-build` to reuse `dist/`, `-- --motion` to let the halo animate first)  |
 | `npm run icons:build`    | Build the home-screen icons and `site.webmanifest` from `compact-disc.svg`                                                                             |
-| `npm run scene:measure`  | Time the 3D room's frames (`-- --desktop`, `-- --throttle 4`, `-- --experiments` to price one piece at a time)                                         |
+| `npm run scene:measure`  | Time the 3D room's frames (`-- --desktop`, `-- --landscape`, `-- --throttle 4`, `-- --experiments` to price one piece at a time)                       |
 | `npm run lint`           | Run Oxlint and ESLint                                                                                                                                  |
 | `npm run format`         | Format the code with Prettier                                                                                                                          |
 

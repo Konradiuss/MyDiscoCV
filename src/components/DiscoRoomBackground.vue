@@ -22,7 +22,8 @@ import {
   REFLECTION_SPOT_SHAPE_ATTRIBUTE,
   createReflectionSpotMaterial,
 } from './disco/reflectionSpotMaterial'
-import { BALL_RADIUS, BALL_REST_Y, getBallRestY } from './disco/ballPlacement'
+import { BALL_RADIUS, BALL_REST_Y } from './disco/ballPlacement'
+import { getHeroFraming, PAGE_VIEW_CAMERA, PAGE_VIEW_TARGET } from './disco/heroFraming'
 import { shouldAnimateScene } from './disco/sceneLoop'
 import {
   getStaticQualityTier,
@@ -176,6 +177,9 @@ let activeQuality = SCENE_QUALITY_PROFILES.high
 let reflectionQualityTier: SceneQualityTier | null = null
 /** Cleared by applyViewport(); see the note in updateSceneFromScroll(). */
 let floorMetrics: { documentTop: number; height: number } | null = null
+/** What the pointer target was last placed for; see publishBallHitArea(). */
+let publishedBallY = Number.NaN
+let publishedFloorReveal = Number.NaN
 let reflectionLatitudeSegments = 0
 let reflectionFacets: ReflectionFacet[] = []
 let reflectionSurfaces: ReflectionSurface[] = []
@@ -204,9 +208,17 @@ let lastPointerX = 0
 let lastPointerTime = 0
 let spinVelocity = 0
 
-/* The ball hangs lower on a phone; see ballPlacement.ts for why. */
+/*
+ * Lower on a phone, lower again in a window with no height; see heroFraming.ts.
+ *
+ * Read from the viewport already applied rather than measured afresh: this runs
+ * on every frame, and asking the canvas for its size after the frame has
+ * written to the stage would force a layout each time. applyViewport() keeps
+ * that number current, which is the whole point of holding it.
+ */
 function ballRestY() {
-  return getBallRestY(isNarrowViewport())
+  const view = appliedViewport ?? readViewport()
+  return getHeroFraming(isNarrowViewport(view.width), view.height).ballRestY
 }
 const ballRadius = BALL_RADIUS
 const facetSeam = 0.11
@@ -223,14 +235,18 @@ const roomFloorDepth = 22
 const roomFloorCenterZ = 3.2
 const floorViewCamera = { y: -0.05, z: 5.5 }
 const floorViewTarget = { y: -2.05, z: 0.55 }
-const pageViewCamera = { y: 0.08, z: 5.7 }
-const pageViewTarget = { y: 0.78, z: -0.45 }
+/* The page-view station lives in heroFraming.ts: the framing is worked out from it. */
+const pageViewCamera = PAGE_VIEW_CAMERA
+const pageViewTarget = PAGE_VIEW_TARGET
 const roomWallDepth = roomFrontZ - roomCornerZ
 const roomWallSpan = Math.hypot(roomHalfWidth, roomWallDepth)
 const leftWallDirection = new THREE.Vector3(-roomHalfWidth, 0, roomWallDepth).normalize()
 const rightWallDirection = new THREE.Vector3(roomHalfWidth, 0, roomWallDepth).normalize()
 const roomGridCellPixels = 40
-const roomGridReferenceDistance = Math.hypot(0.78 - 0.08, 5.7 - roomCornerZ)
+const roomGridReferenceDistance = Math.hypot(
+  pageViewTarget.y - pageViewCamera.y,
+  pageViewCamera.z - roomCornerZ,
+)
 const roomGridSurfaceOffset = 0.006
 const roomGridFloorCellAspect = roomHalfWidth / roomWallDepth
 const roomGridColor = 0x5bc7ff
@@ -2627,6 +2643,8 @@ function resize() {
 
 function invalidateFloorMetrics() {
   floorMetrics = null
+  // The ball can land somewhere new without having moved in the room at all.
+  publishedBallY = Number.NaN
 }
 
 function scheduleResize() {
@@ -2707,9 +2725,52 @@ function updateSceneFromScroll() {
   }
 
   stage.value?.style.setProperty('--ball-scroll-y', `${-scrollTop}px`)
-  ballHitArea.value?.style.setProperty('--ball-scroll-y', `${-scrollTop}px`)
   stage.value?.style.setProperty('--floor-reveal', floorReveal.toFixed(3))
   stage.value?.style.setProperty('--floor-translate', `${((1 - floorReveal) * 36).toFixed(2)}%`)
+
+  publishBallHitArea(ballY, floorReveal)
+}
+
+/**
+ * The pointer target, placed by measurement rather than by hand.
+ *
+ * It used to be a 280px square at `top: 34px`, with a second pair of numbers
+ * under a width media query — an approximation that already missed the ball by
+ * some thirty pixels, and that in a window with no height covered four fifths
+ * of the screen. Since the box carries `touch-action: none`, that left a phone
+ * on its side with almost nowhere to scroll from.
+ *
+ * The camera has just been moved above, and the ball's height already carries
+ * the scroll, so what comes back is where the ball is right now — no
+ * `--ball-scroll-y` needed here any more.
+ *
+ * Guarded on the two things that move it, because the caller runs every frame
+ * and projecting the silhouette is not free. Spin does not move the ball, so on
+ * a page standing still this costs a pair of comparisons. A resize moves the
+ * box without moving either number, and applyViewport() clears the memory for
+ * exactly that case.
+ */
+function publishBallHitArea(ballY: number, floorReveal: number) {
+  const target = ballHitArea.value
+  if (!target) return
+  if (ballY === publishedBallY && floorReveal === publishedFloorReveal) return
+
+  publishedBallY = ballY
+  publishedFloorReveal = floorReveal
+
+  /*
+   * three refreshes the camera's world matrix inside render, so measuring here
+   * would otherwise project through the previous frame's camera. It only
+   * differs while the page is actually moving, and a still frame is unchanged.
+   */
+  camera?.updateMatrixWorld()
+
+  const ball = measureBallOnScreen()
+  if (!ball) return
+
+  target.style.setProperty('--ball-x', `${ball.centerX.toFixed(1)}px`)
+  target.style.setProperty('--ball-y', `${ball.centerY.toFixed(1)}px`)
+  target.style.setProperty('--ball-diameter', `${ball.diameter.toFixed(1)}px`)
 }
 
 function handleScroll() {
@@ -3244,14 +3305,21 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 64px rgba(91, 199, 255, 0.16);
 }
 
+/*
+ * Placed from the measurement the scene publishes, not from a guess — see
+ * publishBallHitArea above. The fallbacks are only what the box looks like in
+ * the instant before the first frame, and the loading screen covers that.
+ *
+ * 24px of slack so a fingertip does not have to find the exact edge.
+ */
 .disco-ball-hit-area {
   position: fixed;
-  top: 34px;
-  left: 50%;
+  top: 0;
+  left: 0;
   z-index: 3;
-  width: 280px;
-  height: 280px;
-  transform: translate3d(-50%, var(--ball-scroll-y, 0px), 0);
+  width: calc(var(--ball-diameter, 240px) + 24px);
+  height: calc(var(--ball-diameter, 240px) + 24px);
+  transform: translate3d(calc(var(--ball-x, 50vw) - 50%), calc(var(--ball-y, 170px) - 50%), 0);
   border-radius: 50%;
   cursor: grab;
   pointer-events: auto;
@@ -3320,19 +3388,17 @@ onBeforeUnmount(() => {
 
 /*
  * 82px, not 42px: PHONE_BALL_DROP in disco/ballPlacement.ts lowers the rendered
- * ball by roughly 40 screen pixels here, and these two boxes are hand-placed
- * approximations of where it lands. Change that constant and change these.
+ * ball by roughly 40 screen pixels here, and this is a hand-placed
+ * approximation of where it lands. Change that constant and change this.
+ *
+ * It is the only such copy left. The pointer target next to it is measured now,
+ * and this one only ever shows when WebGL never starts, where there is no
+ * measurement to take.
  */
 @media (max-width: 720px) {
   .disco-room-fallback__ball {
     top: 82px;
     width: min(230px, 32vh);
-  }
-
-  .disco-ball-hit-area {
-    top: 82px;
-    width: 230px;
-    height: 230px;
   }
 }
 

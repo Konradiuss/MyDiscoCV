@@ -9,6 +9,8 @@
  * the window to settle, and neither runs when the numbers have not moved.
  */
 
+import { getHeroFraming } from './heroFraming'
+
 /** Below this the room is framed for a phone. */
 export const PHONE_VIEWPORT_WIDTH = 720
 
@@ -46,8 +48,9 @@ export interface ViewportLimits {
  * decide. Callers that know the quality tier pass it; everything else, including
  * every existing test, keeps the old behaviour.
  *
- * Field of view stays on the width and is never handed to the caller: framing is
- * composition, and a machine demoted for being slow must not re-frame the room.
+ * Field of view is never taken from `limits`: framing is composition, and a
+ * machine demoted for being slow must not re-frame the room. It comes from
+ * heroFraming.ts, which reads the window's shape rather than its speed.
  */
 export function getSceneViewport(reading: ViewportReading, limits?: ViewportLimits): SceneViewport {
   const phone = reading.width < PHONE_VIEWPORT_WIDTH
@@ -58,7 +61,7 @@ export function getSceneViewport(reading: ViewportReading, limits?: ViewportLimi
     height: reading.height,
     // A phone is asked for fewer pixels than it offers; the halo is fill-bound.
     pixelRatio: Math.min(ratio, limits ? limits.maxPixelRatio : phone ? 1.5 : 1.8),
-    fov: phone ? 31 : 35,
+    fov: getHeroFraming(phone, reading.height).fov,
   }
 }
 
