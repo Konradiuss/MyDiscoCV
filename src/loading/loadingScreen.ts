@@ -13,9 +13,14 @@ const EXIT_CLEANUP_MARGIN_MS = 250
 
 const DISC_ARTWORK_SCALE = 1.0671
 
+/*
+ * Only reached when the scene never reported a ball — no WebGL, or the chunk
+ * never arrived. The phone `top` tracks PHONE_BALL_DROP in
+ * components/disco/ballPlacement.ts and the matching CSS in the scene component.
+ */
 const FALLBACK_BALL = {
   desktop: { top: 34, size: 280 },
-  mobile: { top: 42, size: 230 },
+  mobile: { top: 82, size: 230 },
 } as const
 const MOBILE_QUERY = '(max-width: 720px)'
 

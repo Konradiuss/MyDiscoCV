@@ -8,6 +8,7 @@ import {
   reportLoadingProgress,
   startLoadingScreen,
 } from './loading/loadingScreen'
+import { startFpsOverlay } from './perf/fpsOverlay'
 import './assets/main.css'
 
 startLoadingScreen()
@@ -15,5 +16,8 @@ startLoadingScreen()
 void startAnimatedFavicon()
 
 createApp(App).use(router).mount('#app')
+
+// Does nothing at all unless ?fps is in the address.
+startFpsOverlay()
 
 reportLoadingProgress(LOADING_MILESTONES.appMounted)

@@ -102,8 +102,18 @@ Then open http://localhost:5173.
 | `npm run shots:optimize` | Build the shipped screenshots from `src/assets/shots-source/` (`-- --force` to rebuild everything, `-- --width`/`-- --quality` to change the settings) |
 | `npm run share:image`    | Photograph the room for the link previews (`-- en` for one language, `-- --skip-build` to reuse `dist/`, `-- --motion` to let the halo animate first)  |
 | `npm run icons:build`    | Build the home-screen icons and `site.webmanifest` from `compact-disc.svg`                                                                             |
+| `npm run scene:measure`  | Time the 3D room's frames (`-- --desktop`, `-- --throttle 4`, `-- --experiments` to price one piece at a time)                                         |
 | `npm run lint`           | Run Oxlint and ESLint                                                                                                                                  |
 | `npm run format`         | Format the code with Prettier                                                                                                                          |
+
+### Measuring the room
+
+The 3D scene carries two switches meant for looking into it, both off unless asked for:
+
+- `?fps` puts a small frame-time readout on the page. Headless measurement runs on the CPU and cannot predict a phone's GPU, so this is the instrument that tells the truth — open the site on the handset itself and read `p95`, which is what a stutter actually is.
+- `?quality=high` or `?quality=low` forces a quality tier instead of letting the device pick, which is how the two are compared side by side.
+
+Quality is decided in `src/components/disco/sceneQuality.ts`, separately from viewport width: how wide the screen is governs framing, how capable the device is governs cost.
 
 ## Deployment
 

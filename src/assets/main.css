@@ -1038,6 +1038,8 @@ h3 {
   margin-top: 22px;
   padding-top: 20px;
   border-top: 1px solid var(--line);
+  /* The grid below asks this box how wide it is; see the note on the query. */
+  container-type: inline-size;
 }
 
 .experience-card__projects-title {
@@ -1052,7 +1054,42 @@ h3 {
 .work-project-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  /*
+   * auto-fit rather than auto-fill: auto-fill keeps the empty tracks, so two
+   * projects sat hunched at the left of a four-wide row with the rest of it
+   * blank. The floor on a track is a quarter of the row, which is what holds
+   * the cards to four abreast however wide the page gets.
+   */
+  grid-template-columns: repeat(auto-fit, minmax(max(min(100%, 230px), (100% - 36px) / 4), 1fr));
+}
+
+/*
+ * One project on its own would be stretched the whole way across, where it
+ * stops reading as a card and starts reading as a banner.
+ */
+.work-project-grid > .work-project:only-child {
+  /* An explicit width, because the auto margins below switch off the stretch a
+     grid item normally gets, and `auto` would then fall back to the width of
+     the text inside — a different card for every project. */
+  width: min(100%, 560px);
+  margin-inline: auto;
+}
+
+/*
+ * Four projects go four abreast or two by two, never three with the fourth
+ * stranded underneath. Only one band of widths needs saying so: below 472px the
+ * base rule is already down to a single column, above 955px all four fit, and
+ * in between it would otherwise seat three.
+ *
+ * A container query rather than a media query because the width that decides
+ * this is not the window's — between them sit the page's own max-width, the
+ * card's clamped padding and the timeline rail. Measured: at a 1440px window
+ * this box is 980px, at 1100px it is 928px.
+ */
+@container (min-width: 472px) and (max-width: 955px) {
+  .work-project-grid:has(> .work-project:nth-child(4):last-child) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .work-project {
@@ -1626,6 +1663,34 @@ h3 {
     padding-top: 334px;
   }
 
+  /*
+   * Above this width all five tiles sit in one row and nothing needs saying.
+   * Below it the row breaks, and left alone it breaks badly — four tiles and
+   * the resume stranded on its own, at a fixed 148px, whatever room is going
+   * spare. Six columns lets the three social tiles take two each and the two
+   * that are not social take three each, so both rows fill the width.
+   */
+  .hero-section__links {
+    display: grid;
+    flex: 1 1 100%;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .hero-section__links > .contact-avatar {
+    grid-column: span 2;
+  }
+
+  /* The fourth and fifth are the email and the resume: the order is fixed, and
+     e2e/resume.spec.ts pins it by the mark on each tile. */
+  .hero-section__links > .contact-avatar:nth-child(n + 4) {
+    grid-column: span 3;
+  }
+
+  .contact-avatar {
+    width: auto;
+  }
+
   .project-grid,
   .background-grid,
   .project-card {
@@ -1689,7 +1754,9 @@ h3 {
   }
 
   .music-button {
-    width: 40px;
+    /* 44px is the smallest target a fingertip hits reliably. Four of them plus
+       the gaps come to 194px, which the corner has room for down to 430px. */
+    width: 44px;
   }
 
   .status-panel {
@@ -1714,15 +1781,12 @@ h3 {
     height: 22px;
   }
 
+  /* Layout is settled in the 820px block; this is only the tightening. */
   .hero-section__links {
-    display: grid;
-    flex: 1 1 100%;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 10px;
   }
 
   .contact-avatar {
-    width: auto;
     padding: 12px 8px 10px;
   }
 
@@ -1740,13 +1804,69 @@ h3 {
   }
 }
 
-@media (max-width: 380px) {
+/*
+ * A phone held upright. Three tiles abreast would leave each about 110px around
+ * a 72px picture, with the caption breaking across three lines, so the social
+ * tiles pair off instead — and the resume, which has no partner, takes the
+ * whole row rather than sitting half-width with a hole beside it.
+ *
+ * 430px is the widest phone in portrait (iPhone Pro Max); anything above it is
+ * a tablet or a landscape handset, which has the room for three.
+ */
+@media (max-width: 430px) {
+  .hero-section__links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-section__links > .contact-avatar,
+  .hero-section__links > .contact-avatar:nth-child(n + 4) {
+    grid-column: auto;
+  }
+
+  /* Named twice on purpose: the reset above carries a :nth-child and would
+     otherwise outrank a single class and keep the resume half-width. */
+  .hero-section__links > .contact-avatar.contact-avatar--resume {
+    grid-column: 1 / -1;
+  }
+
+  /*
+   * The corner, rebuilt for a thumb. In one row the four keys had to share half
+   * the corner's width between them — 31.5px each at 320px, against the 44px a
+   * fingertip needs, with their centres closer together than a single target is
+   * wide. Stacked two by two they take a column of their own and grow in both
+   * directions, while the three things that are only read — the track, the
+   * languages, the readout — take the other column a row each.
+   *
+   * `left` as well as `right`: the corner has to span the width for the two
+   * columns to divide anything predictable.
+   */
   .resume-page__chrome {
     left: 12px;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .music-controls__keys {
+    display: grid;
+    grid-column: 1;
+    grid-row: 1 / span 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Until now this was borrowed from .status-panel: the keys shared a row with
+     it and stretched to its min-height. In a column of their own there is
+     nothing to borrow from, and the icon alone would leave an 18px button. */
+  .music-controls__keys .music-button {
+    width: auto;
+    /* Past the 44px floor: the languages beside them need about 100px and have
+       the rest of the row to spare, and a key twice as tall as it is wide reads
+       as a sliver rather than a button. */
+    min-width: 58px;
+    min-height: 44px;
   }
 
   .now-playing {
+    grid-column: 2;
+    grid-row: 1;
     justify-self: stretch;
     min-width: 0;
   }
@@ -1756,17 +1876,56 @@ h3 {
     flex: 1;
   }
 
-  .music-controls__keys {
-    justify-self: stretch;
-    min-width: 0;
+  .language-switcher {
+    grid-column: 2;
+    grid-row: 2;
   }
 
-  .music-controls__keys .music-button {
-    flex: 1;
-    width: auto;
-    min-width: 0;
+  /*
+   * The readouts, shown by what actually fits rather than by a guess at the
+   * window. Below 520px both the clock and the track time were hidden outright,
+   * so a 276px panel at 425px sat holding one 58px reading with air either side
+   * — while all three need only 213px.
+   *
+   * A container query can ask this box its width only because the box no longer
+   * decides it: above 430px the corner is shrink-to-fit with `auto` columns, and
+   * isolating the panel's size there would hand the question to the language
+   * switcher instead. Here the corner spans the screen and the panel sits in a
+   * `1fr` track, so the grid answers and the query is honest.
+   */
+  .status-panel {
+    grid-column: 2;
+    grid-row: 3;
+    container-type: inline-size;
+    /* Tracks from the content, so a hidden reading leaves no empty column and
+       whatever survives stands as one centred group. */
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    justify-content: center;
   }
 
+  /*
+   * Volume is never in doubt; these two earn their place. Widths are fixed by
+   * the glyph grid — 57.6px for the volume, 65.7px each for the two clocks —
+   * so the thresholds are just those sums plus the 12px gaps.
+   *
+   * These win over the `display: none` at 520px on source order, not weight:
+   * both selectors carry a single class.
+   */
+  @container (min-width: 136px) {
+    .track-time {
+      display: grid;
+    }
+  }
+
+  @container (min-width: 214px) {
+    .wall-clock {
+      display: grid;
+    }
+  }
+}
+
+@media (max-width: 380px) {
   .language-switcher__item {
     min-width: 0;
     padding-inline: 4px;

@@ -9,11 +9,6 @@ import type { BallScreenGeometry, ScreenRect } from './ballProjection'
  * MIT + Commons Clause, Copyright (c) David Haz.
  */
 
-export const PRISMATIC_BURST_PROFILES = {
-  desktop: { steps: 44 },
-  mobile: { steps: 20 },
-} as const
-
 export const PRISMATIC_BURST_COLORS = {
   inner: 0x7de3ff,
   middle: 0x39d7c8,
@@ -158,6 +153,46 @@ void main() {
   float shaped = haloShape( distancePx );
   if ( shaped <= 0.0 ) discard;
 
+#ifdef BURST_CHEAP
+
+  /*
+   * The halo a weak device gets. The march below shades an area larger than a
+   * phone's whole screen at roughly 340 transcendental ops a pixel; this is a
+   * dozen, and it has to carry the same impression — light coming off *that*
+   * ball, not a gradient stuck on the glass.
+   *
+   * Two things do that work. sampleGradient is the one the march uses, so the
+   * cyan-teal-violet run is identical; and the spokes are indexed by uAngle, so
+   * they turn with the ball. Drop either and it reads as a sticker.
+   */
+  float band = clamp( ( distancePx - uHoleRadius ) / max( uReach - uHoleRadius, 1.0 ), 0.0, 1.0 );
+  float spoke = atan( toCenter.y, toCenter.x ) + uAngle;
+
+  // Spokes, not a gradient. The march delivers its light in rays with darkness
+  // between them; a smooth falloff on its own reads as fog and floods the top of
+  // the page with one flat colour.
+  float beat = sin( spoke * 9.0 + uTime * 1.3 ) * sin( spoke * 4.0 - uTime * 0.9 );
+  float rays = pow( max( beat, 0.0 ), 0.8 );
+
+  // Cubed, so the light stays near the ball and the room behind it stays black.
+  float reach = pow( 1.0 - band, 2.2 );
+
+  // Half the range, and only the near half. sampleGradient runs inner→middle
+  // across the first half and middle→outer across the second, so stopping at
+  // 0.5 gives blue at the ball fading to turquoise, and keeps the violet end
+  // out of the picture entirely — cycling the whole palette by angle hung a
+  // stray purple arc across the room, which is not light a mirror ball throws.
+  vec3 tint = sampleGradient( band * 0.5 );
+
+  vec3 col = tint * ( 0.18 + 2.3 * rays ) * reach * BURST_CHEAP_GAIN;
+
+  // The grain the march adds is five octaves of hash noise at an amplitude of
+  // 0.0015 — invisible on its own, and the most expensive thing left in this
+  // branch if it were kept. The shape alone is the falloff here.
+  float falloff = shaped;
+
+#else
+
   float grain = ( layeredNoise( frag * 0.15 ) - 0.5 ) * 0.0015 * shaped;
   float falloff = clamp( shaped + grain, 0.0, 1.0 );
   if ( falloff <= 0.0 ) discard;
@@ -207,6 +242,8 @@ void main() {
     marchT += stepLen;
   }
 
+#endif
+
   col = clamp( col * falloff * uIntensity, 0.0, 1.0 );
 
   gl_FragColor = vec4( col, 1.0 );
@@ -236,15 +273,32 @@ export function createPrismaticBurstGeometry() {
   return new THREE.CircleGeometry(1 / Math.cos(Math.PI / BURST_QUAD_SEGMENTS), BURST_QUAD_SEGMENTS)
 }
 
+export type PrismaticBurstMode = 'march' | 'glow'
+
 export interface PrismaticBurstMaterialOptions {
   readonly steps: number
+  /** Optional, and 'march' when absent: the full effect stays the default. */
+  readonly mode?: PrismaticBurstMode
 }
 
+/*
+ * The march accumulates over its steps, so uIntensity is tuned for a sum. The
+ * analytic glow produces its whole value at once and needs its own scale, which
+ * is a compile-time constant rather than a uniform: a new uniform would mean a
+ * new entry in the material's contract, and the point of the cheap path is that
+ * nothing outside this file has to know about it.
+ */
+const BURST_CHEAP_GAIN = 1.15
+
 export function createPrismaticBurstMaterial(options: PrismaticBurstMaterialOptions) {
+  const glow = options.mode === 'glow'
+
   return new THREE.ShaderMaterial({
     vertexShader: PRISMATIC_BURST_VERTEX_SHADER,
     fragmentShader: PRISMATIC_BURST_FRAGMENT_SHADER,
-    defines: { BURST_STEPS: String(Math.max(1, Math.round(options.steps))) },
+    defines: glow
+      ? { BURST_STEPS: '1', BURST_CHEAP: '', BURST_CHEAP_GAIN: BURST_CHEAP_GAIN.toFixed(2) }
+      : { BURST_STEPS: String(Math.max(1, Math.round(options.steps))) },
     uniforms: {
       uQuadCenter: { value: new THREE.Vector2() },
       uQuadHalfSize: { value: new THREE.Vector2(1, 1) },

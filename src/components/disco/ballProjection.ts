@@ -13,6 +13,13 @@ export interface ScreenRect {
   readonly height: number
 }
 
+/*
+ * How many points around the silhouette are projected to find the ball's box on
+ * screen. This runs every frame to size the halo, so it is worth lowering where
+ * the frames are scarce — a 16-gon's box differs from a 64-gon's by under 2% of
+ * the radius, about two pixels at the size the ball is ever drawn. It stays at
+ * 64 by default so the full-quality room is bit-for-bit what it always was.
+ */
 const SILHOUETTE_SAMPLES = 64
 
 const ringCenter = new THREE.Vector3()
@@ -26,6 +33,7 @@ export function getBallScreenGeometry(
   center: THREE.Vector3,
   radius: number,
   view: ScreenRect,
+  samples: number = SILHOUETTE_SAMPLES,
 ): BallScreenGeometry | null {
   if (!(radius > 0) || !(view.width > 0) || !(view.height > 0)) return null
 
@@ -46,8 +54,8 @@ export function getBallScreenGeometry(
   let minY = Number.POSITIVE_INFINITY
   let maxY = Number.NEGATIVE_INFINITY
 
-  for (let index = 0; index < SILHOUETTE_SAMPLES; index += 1) {
-    const angle = (index / SILHOUETTE_SAMPLES) * Math.PI * 2
+  for (let index = 0; index < samples; index += 1) {
+    const angle = (index / samples) * Math.PI * 2
     ringPoint
       .copy(ringCenter)
       .addScaledVector(ringU, Math.cos(angle) * ringRadius)
