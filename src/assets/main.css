@@ -1356,6 +1356,58 @@ h3 {
   color: var(--text);
 }
 
+/*
+ * A window with no height — a phone on its side, or half a desktop screen.
+ *
+ * The dialog carried `max-height: 100%` but nothing inside it could shrink: the
+ * picture was capped at 68vh, which on a 531px-tall screen left 605px of
+ * content in 531px of room, and the row of arrows was simply pushed off the
+ * bottom edge. Here the dialog is given a height rather than a ceiling — only a
+ * definite one lets the percentage on the picture resolve — and the picture's
+ * row is the one that gives way.
+ */
+@media (max-height: 620px) {
+  /*
+   * The row has to be pinned to the overlay's own height first. Left to size
+   * itself it takes the dialog's content — 646px of it in a 390px window — and
+   * then `height: 100%` below would resolve against that and change nothing.
+   */
+  .screenshot-viewer {
+    grid-template-rows: minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .screenshot-viewer__dialog {
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .screenshot-viewer__figure {
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  /* Pinned for the same reason as the overlay: the picture measures itself
+     against this row, so the row must not measure itself against the picture. */
+  .screenshot-viewer__frame {
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .screenshot-viewer__figure img {
+    max-height: 100%;
+  }
+
+  /* Kept, but on one line: it describes the picture, so hiding it would cost. */
+  .screenshot-viewer__figure figcaption {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}
+
 .screenshot-viewer-enter-active,
 .screenshot-viewer-leave-active {
   transition: opacity 180ms ease;

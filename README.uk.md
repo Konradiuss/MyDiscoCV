@@ -102,7 +102,7 @@ npm run dev
 | `npm run shots:optimize` | Збирає скриншоти для сайту з `src/assets/shots-source/` (`-- --force` — перезібрати все, `-- --width`/`-- --quality` — інші налаштування)          |
 | `npm run share:image`    | Знімає кімнату для прев'ю посилань (`-- en` — лише одна мова, `-- --skip-build` — узяти наявний `dist/`, `-- --motion` — дати сяйву поворухнутися) |
 | `npm run icons:build`    | Збирає значки для домашнього екрана та `site.webmanifest` із `compact-disc.svg`                                                                    |
-| `npm run scene:measure`  | Вимірює час кадру 3D-кімнати (`-- --desktop`, `-- --throttle 4`, `-- --experiments` — оцінити кожну частину окремо)                                |
+| `npm run scene:measure`  | Вимірює час кадру 3D-кімнати (`-- --desktop`, `-- --landscape`, `-- --throttle 4`, `-- --experiments` — оцінити кожну частину окремо)              |
 | `npm run lint`           | Запускає Oxlint і ESLint                                                                                                                           |
 | `npm run format`         | Форматує код за допомогою Prettier                                                                                                                 |
 

@@ -3,15 +3,17 @@ import { describe, expect, it } from 'vitest'
 
 import { getBallScreenGeometry, getObjectScreenRect } from '../components/disco/ballProjection'
 import { BALL_RADIUS, getBallRestY } from '../components/disco/ballPlacement'
+import { PAGE_VIEW_CAMERA, PAGE_VIEW_TARGET } from '../components/disco/heroFraming'
 
 /* Imported, not copied: a local 1.88 would go on testing a ball that moved. */
 const BALL_CENTER = new THREE.Vector3(0, getBallRestY(false), 0)
 const PHONE_BALL_CENTER = new THREE.Vector3(0, getBallRestY(true), 0)
 
+/* Likewise the station: these tests are only about the room as it is built. */
 function createCamera(fov: number, width: number, height: number) {
   const camera = new THREE.PerspectiveCamera(fov, width / height, 0.1, 100)
-  camera.position.set(0, 0.08, 5.7)
-  camera.lookAt(0, 0.78, -0.45)
+  camera.position.set(0, PAGE_VIEW_CAMERA.y, PAGE_VIEW_CAMERA.z)
+  camera.lookAt(0, PAGE_VIEW_TARGET.y, PAGE_VIEW_TARGET.z)
   camera.updateMatrixWorld(true)
   camera.updateProjectionMatrix()
   return camera
@@ -73,7 +75,9 @@ describe('ball screen projection', () => {
   it('is larger than a naive on-axis estimate, because the ball sits off axis', () => {
     const height = 900
     const fov = 35
-    const distance = BALL_CENTER.distanceTo(new THREE.Vector3(0, 0.08, 5.7))
+    const distance = BALL_CENTER.distanceTo(
+      new THREE.Vector3(0, PAGE_VIEW_CAMERA.y, PAGE_VIEW_CAMERA.z),
+    )
     const naive = (BALL_RADIUS / distance / Math.tan((fov * Math.PI) / 360)) * (height / 2) * 2
 
     const ball = getBallScreenGeometry(

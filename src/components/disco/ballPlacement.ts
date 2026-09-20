@@ -7,6 +7,10 @@
  * Those pixel copies cannot be imported from here, but at least the world-space
  * truth now has one home, and the test that projects the ball reads it instead
  * of carrying its own copy of 1.88.
+ *
+ * This is where the ball hangs when the window has the height for it. What
+ * happens when it does not is in heroFraming.ts, which lowers it further and
+ * narrows the lens to match.
  */
 
 /** World units above the room's centre, on a screen with room to spare. */
@@ -23,9 +27,12 @@ export const BALL_RADIUS = 0.48
  * rescue. At the phone field of view 0.1 world units is roughly 25 screen
  * pixels, so this is about 40.
  *
- * Mirrored in CSS as the `top` of `.disco-ball-hit-area` and
- * `.disco-room-fallback__ball` under `@media (max-width: 720px)`, and in
- * `FALLBACK_BALL.mobile` in src/loading/loadingScreen.ts. Move one, move all.
+ * Mirrored in CSS as the `top` of `.disco-room-fallback__ball` under
+ * `@media (max-width: 720px)`, and in `FALLBACK_BALL.mobile` in
+ * src/loading/loadingScreen.ts. Move one, move all.
+ *
+ * Both of those are the no-WebGL picture. The pointer target no longer needs a
+ * copy: it is placed from the measured ball.
  */
 export const PHONE_BALL_DROP = 0.16
 

@@ -3,6 +3,7 @@
  *
  *   npm run scene:measure                     phone viewport, top and below the fold
  *   npm run scene:measure -- --desktop        1440x900 instead
+ *   npm run scene:measure -- --landscape      the same phone on its side, 844x390
  *   npm run scene:measure -- --throttle 4     slow the CPU down 4x
  *   npm run scene:measure -- --dpr 3          what the device reports, before the app caps it
  *   npm run scene:measure -- --seconds 6
@@ -49,6 +50,8 @@ const PORT = 4320
 
 const PHONE = { width: 390, height: 844 }
 const DESKTOP = { width: 1440, height: 900 }
+/* The same phone on its side, where the room zooms in — see heroFraming.ts. */
+const LANDSCAPE = { width: 844, height: 390 }
 
 /* Thrown away before measuring: shader compilation lands in the first few. */
 const WARMUP_FRAMES = 10
@@ -126,7 +129,8 @@ async function main() {
   const seconds = readNumber('seconds', 5)
   const throttle = readNumber('throttle', 1)
   const desktop = process.argv.includes('--desktop')
-  const viewport = desktop ? DESKTOP : PHONE
+  const landscape = process.argv.includes('--landscape')
+  const viewport = desktop ? DESKTOP : landscape ? LANDSCAPE : PHONE
   const dpr = readNumber('dpr', desktop ? 2 : 3)
   const experiments = process.argv.includes('--experiments')
 
@@ -158,6 +162,14 @@ async function main() {
     const context = await browser.newContext({
       viewport,
       deviceScaleFactor: dpr,
+      /*
+       * A phone viewport has to answer `(pointer: coarse)` like a phone, or
+       * getStaticQualityTier reads it as a small desktop. Upright that made no
+       * difference — the width rule catches 390px on its own — but on its side
+       * the window is 844 wide, and without this the measurement was of the
+       * full desktop scene: 1.8x pixels, 220 spots, the raymarched halo.
+       */
+      hasTouch: !desktop,
       reducedMotion: process.argv.includes('--reduce') ? 'reduce' : 'no-preference',
     })
     const page = await context.newPage()
