@@ -24,8 +24,14 @@ import {
 } from './disco/reflectionSpotMaterial'
 import { shouldAnimateScene } from './disco/sceneLoop'
 import {
+  getStaticQualityTier,
+  SCENE_QUALITY_PROFILES,
+  type SceneQualityTier,
+} from './disco/sceneQuality'
+import {
   createTrailingCall,
   getSceneViewport,
+  isNarrowViewport,
   needsCameraUpdate,
   needsRendererResize,
   type SceneViewport,
@@ -44,7 +50,6 @@ import {
   type ScreenRect,
 } from './disco/ballProjection'
 import {
-  PRISMATIC_BURST_PROFILES,
   createPrismaticBurstGeometry,
   createPrismaticBurstMaterial,
   getBurstQuadTransform,
@@ -159,14 +164,24 @@ let reflectedSpotColors: Float32Array | null = null
 let reflectedSpotUvs: Float32Array | null = null
 let reflectedSpotShapes: Float32Array | null = null
 let reflectedSpotCapacity = 0
-let reflectionViewportIsMobile: boolean | null = null
+/*
+ * Resolved once, before the renderer exists, because `antialias` is a context
+ * attribute and cannot be changed afterwards. The caches below hold the tier
+ * they were built for, so a later change to it rebuilds through the same path a
+ * viewport change already uses.
+ */
+let qualityTier: SceneQualityTier = 'high'
+let activeQuality = SCENE_QUALITY_PROFILES.high
+let reflectionQualityTier: SceneQualityTier | null = null
+/** Cleared by applyViewport(); see the note in updateSceneFromScroll(). */
+let floorMetrics: { documentTop: number; height: number } | null = null
 let reflectionLatitudeSegments = 0
 let reflectionFacets: ReflectionFacet[] = []
 let reflectionSurfaces: ReflectionSurface[] = []
 let roomGrid: THREE.LineSegments<THREE.BufferGeometry, THREE.LineBasicMaterial> | null = null
 let roomGridCellSize = 0
 let prismaticBurst: THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial> | null = null
-let burstViewportIsMobile: boolean | null = null
+let burstQualityTier: SceneQualityTier | null = null
 let burstTime = 0
 let recordSleeves: RecordSleeve[] = []
 let recordSleeveSize = 0
@@ -440,12 +455,22 @@ function createQuadGeometry(points: [THREE.Vector3, THREE.Vector3, THREE.Vector3
 function createRoom() {
   if (!scene) return
 
-  const roomMaterial = new THREE.MeshStandardMaterial({
-    color: 0x0b0712,
-    metalness: 0,
-    roughness: 0.98,
-    side: THREE.DoubleSide,
-  })
+  /*
+   * Three meshes that between them cover the whole screen, for a surface that is
+   * very nearly black. On a weak device the physically based shading — image
+   * based lighting, two spotlights with penumbra, the full ACES path — is the
+   * third most expensive thing in the frame. Lambert keeps the light pools the
+   * spots cast on the floor, which is all this surface actually shows.
+   */
+  const roomMaterial =
+    activeQuality.wallShading === 'lambert'
+      ? new THREE.MeshLambertMaterial({ color: 0x0b0712, side: THREE.DoubleSide })
+      : new THREE.MeshStandardMaterial({
+          color: 0x0b0712,
+          metalness: 0,
+          roughness: 0.98,
+          side: THREE.DoubleSide,
+        })
 
   const cornerBottom = new THREE.Vector3(0, roomFloorY, roomCornerZ)
   const cornerTop = new THREE.Vector3(0, roomCeilingY, roomCornerZ)
@@ -468,10 +493,6 @@ function createRoom() {
   )
   floor.rotation.x = -Math.PI * 0.5
   floor.position.set(0, roomFloorY, roomFloorCenterZ)
-
-  leftWall.receiveShadow = true
-  rightWall.receiveShadow = true
-  floor.receiveShadow = true
 
   scene.add(leftWall, rightWall, floor)
 
@@ -643,9 +664,7 @@ function createRoomLights() {
 }
 
 function getReflectionDensityProfile() {
-  return window.innerWidth < 720
-    ? reflectionDensityProfiles.mobile
-    : reflectionDensityProfiles.desktop
+  return reflectionDensityProfiles[activeQuality.reflectionDensity]
 }
 
 function createReflectionFacets(latitudeSegments: number, longitudeSegments: number) {
@@ -658,7 +677,7 @@ function createReflectionFacets(latitudeSegments: number, longitudeSegments: num
 }
 function initializeReflectionFacets() {
   if (reflectionLatitudeSegments === 0) {
-    reflectionLatitudeSegments = window.matchMedia('(max-width: 720px)').matches ? 24 : 32
+    reflectionLatitudeSegments = activeQuality.ballSegments
   }
 
   reflectionFacets = createReflectionFacets(
@@ -727,13 +746,12 @@ function disposeReflectedSpotResources() {
 function rebuildReflectedSpotsForViewport(force = false) {
   if (!scene) return
 
-  const isMobile = window.innerWidth < 720
-  if (!force && reflectionViewportIsMobile === isMobile) return
+  if (!force && reflectionQualityTier === qualityTier) return
 
   disposeReflectedSpotResources()
   initializeReflectionFacets()
   createReflectedSpots()
-  reflectionViewportIsMobile = isMobile
+  reflectionQualityTier = qualityTier
   updateReflectedSpots()
 }
 function appendReflectionPolygonToBatch(
@@ -907,10 +925,18 @@ function updateReflectedSpots() {
   }
 
   reflectedSpots.geometry.setDrawRange(0, activeVertexCount)
-  reflectedSpots.geometry.getAttribute('position').needsUpdate = true
-  reflectedSpots.geometry.getAttribute('color').needsUpdate = true
-  reflectedSpots.geometry.getAttribute('uv').needsUpdate = true
-  reflectedSpots.geometry.getAttribute(REFLECTION_SPOT_SHAPE_ATTRIBUTE).needsUpdate = true
+
+  /*
+   * Only the vertices actually written. Without a range three.js re-uploads the
+   * whole capacity every frame — a couple of hundred kilobytes across the memory
+   * bus whether four spots are live or two hundred.
+   */
+  for (const name of ['position', 'color', 'uv', REFLECTION_SPOT_SHAPE_ATTRIBUTE]) {
+    const attribute = reflectedSpots.geometry.getAttribute(name) as THREE.BufferAttribute
+    attribute.clearUpdateRanges()
+    attribute.addUpdateRange(0, activeVertexCount * attribute.itemSize)
+    attribute.needsUpdate = true
+  }
 }
 function disposePrismaticBurst() {
   if (!prismaticBurst) return
@@ -924,12 +950,12 @@ function disposePrismaticBurst() {
 function createPrismaticBurst() {
   if (!scene) return
 
-  const profile =
-    window.innerWidth < 720 ? PRISMATIC_BURST_PROFILES.mobile : PRISMATIC_BURST_PROFILES.desktop
-
   prismaticBurst = new THREE.Mesh(
     createPrismaticBurstGeometry(),
-    createPrismaticBurstMaterial({ steps: profile.steps }),
+    createPrismaticBurstMaterial({
+      steps: activeQuality.burstSteps,
+      mode: activeQuality.burstMode,
+    }),
   )
   prismaticBurst.frustumCulled = false
   prismaticBurst.renderOrder = 3
@@ -941,12 +967,11 @@ function createPrismaticBurst() {
 function rebuildPrismaticBurstForViewport(force = false) {
   if (!scene) return
 
-  const isMobile = window.innerWidth < 720
-  if (!force && burstViewportIsMobile === isMobile) return
+  if (!force && burstQualityTier === qualityTier) return
 
   disposePrismaticBurst()
   createPrismaticBurst()
-  burstViewportIsMobile = isMobile
+  burstQualityTier = qualityTier
 }
 
 function updatePrismaticBurst() {
@@ -1111,7 +1136,6 @@ function createVinylRecord(size: number, pattern?: LabelPattern) {
     }),
   )
   disc.rotation.x = -Math.PI * 0.5
-  disc.receiveShadow = true
 
   const printed = pattern ? createLabelTexture(pattern) : null
   const label = new THREE.Mesh(
@@ -1182,8 +1206,7 @@ function createRecordSleeves() {
   const tracks = props.sleeves ?? []
   if (tracks.length === 0) return
 
-  const profile =
-    window.innerWidth < 720 ? recordSleeveProfiles.mobile : recordSleeveProfiles.desktop
+  const profile = isNarrowViewport() ? recordSleeveProfiles.mobile : recordSleeveProfiles.desktop
   const floorView = currentFloorView(camera)
   const area = getRecordSleevePatch(floorView, roomWalls, profile)
 
@@ -1217,7 +1240,6 @@ function createRecordSleeves() {
       [card, card, printed, card, card, card],
     )
     sleeve.position.y = thickness / 2
-    sleeve.receiveShadow = true
 
     const vinyl = createVinylRecord(recordSleeveSize, track.label)
     vinyl.position.y = thickness / 2
@@ -1662,7 +1684,6 @@ function createDeck(box: FloorPropBox, materials: FloorPropMaterials, pattern?: 
     materials.shell,
   )
   plinth.position.y = box.height / 2
-  plinth.receiveShadow = true
 
   const platter = new THREE.Mesh(
     new THREE.CylinderGeometry(platterRadius, platterRadius, metres(DECK_METRES.platterHeight), 48),
@@ -2015,7 +2036,7 @@ function createSpeaker(box: FloorPropBox, materials: FloorPropMaterials) {
 
 function createFloorProps() {
   if (!scene || !camera || recordSleeves.length === 0 || !(recordSleeveSize > 0)) return
-  if (window.innerWidth < 720) return
+  if (isNarrowViewport()) return
 
   const view = currentFloorView(camera)
   const area = getFloorPropPatch(
@@ -2122,7 +2143,7 @@ function disposeFloorProps() {
 function rebuildFloorForViewport(force = false) {
   if (!scene || !camera) return
 
-  const key = `${window.innerWidth < 720 ? 'phone' : 'desk'}:${camera.aspect.toFixed(2)}`
+  const key = `${isNarrowViewport() ? 'phone' : 'desk'}:${camera.aspect.toFixed(2)}`
   if (!force && sleevePatchKey === key) return
 
   disposeFloorProps()
@@ -2508,8 +2529,7 @@ function createDiscoBall() {
   ballGroup.position.set(0, initialBallY, 0)
   scene.add(ballGroup)
 
-  const isMobile = window.matchMedia('(max-width: 720px)').matches
-  const latitudeSegments = isMobile ? 24 : 32
+  const latitudeSegments = activeQuality.ballSegments
   const longitudeSegments = latitudeSegments * 2
   const mirrorMaterial = new THREE.MeshStandardMaterial({
     color: 0xf4f8ff,
@@ -2556,7 +2576,10 @@ function readViewport(): ViewportReading {
  * the drawing buffer on every setSize, including the ones that change nothing.
  */
 function applyViewport() {
-  const next = getSceneViewport(readViewport())
+  // The page has reflowed, so the floor's place in the document may have moved.
+  invalidateFloorMetrics()
+
+  const next = getSceneViewport(readViewport(), activeQuality)
 
   if (renderer && needsRendererResize(appliedViewport, next)) {
     renderer.setPixelRatio(next.pixelRatio)
@@ -2598,6 +2621,10 @@ function resize() {
   rebuildForViewport()
 }
 
+function invalidateFloorMetrics() {
+  floorMetrics = null
+}
+
 function scheduleResize() {
   if (!resizeFrame) {
     resizeFrame = requestAnimationFrame(() => {
@@ -2616,9 +2643,24 @@ function updateSceneFromScroll() {
   let floorReveal = 0
 
   if (floorElement) {
-    const floorRect = floorElement.getBoundingClientRect()
+    /*
+     * Measured against the document, not the viewport, so scrolling alone does
+     * not need a fresh rect. The frame before this one wrote four custom
+     * properties onto the stage, which makes any read here a forced layout, and
+     * it was happening on every single frame.
+     *
+     * The box itself only moves when the page reflows — a resize, an image
+     * decoding, a change of language — and the ResizeObserver on the document
+     * element already reports every one of those.
+     */
+    if (!floorMetrics) {
+      const rect = floorElement.getBoundingClientRect()
+      floorMetrics = { documentTop: rect.top + scrollTop, height: rect.height }
+    }
+
+    const top = floorMetrics.documentTop - scrollTop
     const rawReveal = clamp01(
-      (viewportHeight - floorRect.top) / Math.max(viewportHeight, floorRect.height),
+      (viewportHeight - top) / Math.max(viewportHeight, floorMetrics.height),
     )
     floorReveal = smoothstep(rawReveal)
   }
@@ -2626,11 +2668,11 @@ function updateSceneFromScroll() {
   const reachable = floorReveal >= recordSleeveRevealThreshold
   if (floorReachable.value !== reachable) floorReachable.value = reachable
 
-  const worldPerViewport = window.innerWidth < 720 ? 5.15 : 5.8
+  const worldPerViewport = isNarrowViewport() ? 5.15 : 5.8
   const ballTravel = (scrollTop / viewportHeight) * worldPerViewport
   const ballY = initialBallY + ballTravel
   reflectionAnchorY = initialBallY + Math.min(ballTravel, 1.28)
-  const deviceLightStrength = window.innerWidth < 720 ? 0.72 : 1
+  const deviceLightStrength = isNarrowViewport() ? 0.72 : 1
   reflectionStrength =
     THREE.MathUtils.lerp(1, 0.68, clamp01(scrollTop / (viewportHeight * 2.6))) * deviceLightStrength
 
@@ -2683,7 +2725,13 @@ function measureBallOnScreen(): BallScreenGeometry | null {
   const view = canvasRect ?? renderer.domElement.getBoundingClientRect()
   ballScreenPoint.set(0, ballGroup.position.y, 0)
 
-  return getBallScreenGeometry(camera, ballScreenPoint, ballRadius, view)
+  return getBallScreenGeometry(
+    camera,
+    ballScreenPoint,
+    ballRadius,
+    view,
+    activeQuality.silhouetteSamples,
+  )
 }
 
 function advanceReflectionTravel(rotationDelta: number) {
@@ -2827,8 +2875,25 @@ onMounted(() => {
   window.addEventListener('resize', scheduleResize)
   document.addEventListener('visibilitychange', handleVisibilityChange)
 
+  /*
+   * Before the renderer, not after: antialias is fixed at construction, and
+   * every build step below reads the profile this picks.
+   */
+  qualityTier = getStaticQualityTier({
+    width: window.innerWidth,
+    coarsePointer: window.matchMedia('(pointer: coarse)').matches,
+    override: new URLSearchParams(window.location.search).get('quality'),
+  })
+  activeQuality = SCENE_QUALITY_PROFILES[qualityTier]
+
   try {
-    renderer = new THREE.WebGLRenderer({ canvas: target, alpha: true, antialias: true })
+    renderer = new THREE.WebGLRenderer({
+      canvas: target,
+      alpha: true,
+      // A context attribute: it cannot be changed later, so it is decided here
+      // from the static reading alone and never by anything measured at runtime.
+      antialias: activeQuality.antialias,
+    })
   } catch {
     renderer = null
     resize()
@@ -2840,8 +2905,6 @@ onMounted(() => {
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.08
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   scene = new THREE.Scene()
   camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100)
@@ -2870,6 +2933,54 @@ onMounted(() => {
   createRoomLights()
   hasWebgl.value = true
   emit('progress', 0.7)
+
+  /*
+   * Measurement hook for scripts/measure-scene.ts, off unless `?perf` is in the
+   * query. A query param rather than import.meta.env.DEV on purpose: the build
+   * worth measuring is the one that ships.
+   *
+   * Each entry exists to bound one cost before any optimisation is written, so
+   * we cut the thing that is actually expensive rather than the thing that looks
+   * expensive. Disposing the burst is enough to switch it off for good —
+   * updatePrismaticBurst() returns early once the mesh is gone.
+   */
+  if (new URLSearchParams(window.location.search).has('perf')) {
+    ;(window as unknown as Record<string, unknown>).__discoPerf = {
+      dropBurst: () => disposePrismaticBurst(),
+      dropSpots: () => {
+        if (reflectedSpots) reflectedSpots.visible = false
+      },
+      dropGrid: () => {
+        if (roomGrid) roomGrid.visible = false
+      },
+      cheapWalls: () => {
+        scene?.traverse((object) => {
+          const mesh = object as THREE.Mesh
+          const material = mesh.material as THREE.Material | undefined
+          if (
+            material instanceof THREE.MeshStandardMaterial &&
+            material.color.getHex() === 0x0b0712
+          )
+            mesh.material = new THREE.MeshBasicMaterial({ color: 0x0b0712 })
+        })
+      },
+      dropEnvironment: () => {
+        if (scene) scene.environment = null
+      },
+      dropBall: () => {
+        if (ballGroup) ballGroup.visible = false
+      },
+      setPixelRatio: (value: number) => renderer?.setPixelRatio(value),
+      info: () => ({
+        ...renderer?.info.render,
+        tier: qualityTier,
+        pixelRatio: renderer?.getPixelRatio(),
+        spots: getReflectionDensityProfile().candidateCount,
+        ballSegments: activeQuality.ballSegments,
+        burstSteps: activeQuality.burstSteps,
+      }),
+    }
+  }
 
   resize()
   renderOnce()
@@ -2928,11 +3039,11 @@ onBeforeUnmount(() => {
   reflectedLight = null
   reflectedLightTarget = null
   roomGridCellSize = 0
-  reflectionViewportIsMobile = null
+  reflectionQualityTier = null
   reflectionLatitudeSegments = 0
   reflectionTravelTurns = 0
   reflectionSurfaces = []
-  burstViewportIsMobile = null
+  burstQualityTier = null
   burstTime = 0
   canvasRect = null
   recordSleeveSize = 0

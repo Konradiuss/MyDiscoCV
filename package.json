@@ -19,6 +19,7 @@
     "shots:optimize": "node scripts/optimize-shots.ts",
     "icons:build": "node scripts/build-icons.ts",
     "share:image": "node scripts/build-share-image.ts",
+    "scene:measure": "node scripts/measure-scene.ts",
     "lint": "run-s \"lint:*\"",
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",

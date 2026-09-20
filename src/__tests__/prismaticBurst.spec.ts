@@ -169,3 +169,59 @@ describe('the burst shader', () => {
     )
   })
 })
+
+describe('the cheap halo', () => {
+  it('marches unless asked not to', () => {
+    expect(createPrismaticBurstMaterial({ steps: 20 }).defines.BURST_CHEAP).toBeUndefined()
+    expect(
+      createPrismaticBurstMaterial({ steps: 20, mode: 'march' }).defines.BURST_CHEAP,
+    ).toBeUndefined()
+  })
+
+  it('switches the shader over on the glow setting', () => {
+    const defines = createPrismaticBurstMaterial({ steps: 20, mode: 'glow' }).defines
+
+    expect(defines.BURST_CHEAP).toBeDefined()
+    expect(defines.BURST_CHEAP_GAIN).toBeDefined()
+  })
+
+  /*
+   * Both branches live in one shader source on purpose: the two contract tests
+   * above read that source for uniform declarations, and a second shader file
+   * would leave every march-only uniform looking unused.
+   */
+  it('keeps the march behind the cheap branch rather than in its own shader', () => {
+    const cheap = PRISMATIC_BURST_FRAGMENT_SHADER.indexOf('#ifdef BURST_CHEAP')
+    const march = PRISMATIC_BURST_FRAGMENT_SHADER.indexOf('for ( int i = 0;')
+    const otherwise = PRISMATIC_BURST_FRAGMENT_SHADER.indexOf('#else', cheap)
+
+    expect(cheap).toBeGreaterThan(-1)
+    expect(otherwise).toBeGreaterThan(cheap)
+    expect(march).toBeGreaterThan(otherwise)
+  })
+
+  /*
+   * The two things that make the cheap halo read as light coming off the ball
+   * rather than a gradient pasted over it: the palette the march uses, and the
+   * ball's own rotation. Losing either is a silent downgrade, so they are nailed
+   * down here.
+   */
+  it('turns with the ball and keeps the march palette', () => {
+    const branch = PRISMATIC_BURST_FRAGMENT_SHADER.slice(
+      PRISMATIC_BURST_FRAGMENT_SHADER.indexOf('#ifdef BURST_CHEAP'),
+      PRISMATIC_BURST_FRAGMENT_SHADER.indexOf('for ( int i = 0;'),
+    )
+
+    expect(branch).toContain('uAngle')
+    expect(branch).toContain('sampleGradient')
+  })
+
+  it('leaves the five-octave grain to the march', () => {
+    const cheapBranch = PRISMATIC_BURST_FRAGMENT_SHADER.slice(
+      PRISMATIC_BURST_FRAGMENT_SHADER.indexOf('#ifdef BURST_CHEAP'),
+      PRISMATIC_BURST_FRAGMENT_SHADER.indexOf('#else'),
+    )
+
+    expect(cheapBranch).not.toContain('layeredNoise')
+  })
+})
